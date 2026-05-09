@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
@@ -77,7 +78,8 @@ namespace MiniERP_API.Repositories
         {
             using (var conn = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand(Queries.DeleteProduct, conn);
+                var cmd = new SqlCommand("sp_SoftDelete", conn) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.AddWithValue("@TableName", "Products");
                 cmd.Parameters.AddWithValue("@Id", id);
                 conn.Open();
                 cmd.ExecuteNonQuery();
@@ -91,10 +93,8 @@ namespace MiniERP_API.Repositories
             cmd.Parameters.AddWithValue("@SKU", p.SKU);
             cmd.Parameters.AddWithValue("@Name", p.Name);
             cmd.Parameters.AddWithValue("@Description", (object)p.Description ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@SeriesName", (object)p.SeriesName ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Scale", (object)p.Scale ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Grade", (object)p.Grade ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@Weight", (object)p.Weight ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Unit", (object)p.Unit ?? DBNull.Value);
+
             cmd.Parameters.AddWithValue("@CostPrice", p.CostPrice);
             cmd.Parameters.AddWithValue("@RetailPrice", p.RetailPrice);
             cmd.Parameters.AddWithValue("@StockQuantity", p.StockQuantity);
@@ -111,15 +111,12 @@ namespace MiniERP_API.Repositories
                 SKU = reader["SKU"].ToString(),
                 Name = reader["Name"].ToString(),
                 Description = reader["Description"].ToString(),
-                SeriesName = reader["SeriesName"].ToString(),
-                Scale = reader["Scale"].ToString(),
-                Grade = reader["Grade"].ToString(),
-                Weight = reader["Weight"] as decimal?,
+                Unit = reader["Unit"].ToString(),
+
                 CostPrice = (decimal)reader["CostPrice"],
                 RetailPrice = (decimal)reader["RetailPrice"],
                 StockQuantity = (int)reader["StockQuantity"],
                 ImageUrl = reader["ImageUrl"].ToString(),
-                IsActive = (bool)reader["IsActive"],
                 CreatedAt = (DateTimeOffset)reader["CreatedAt"],
                 UpdatedAt = reader["UpdatedAt"] == DBNull.Value ? null : (DateTimeOffset?)reader["UpdatedAt"],
                 IsDeleted = (bool)reader["IsDeleted"]

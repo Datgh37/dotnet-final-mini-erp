@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using MiniERP_API.Models.DTOs;
@@ -19,16 +20,17 @@ namespace MiniERP_API.Services
             _mapper = mapper;
         }
 
+        public IEnumerable<SalesOrderDto> GetAll() => _mapper.Map<IEnumerable<SalesOrderDto>>(_orderRepo.GetAll());
+        public SalesOrderDto GetById(int id) => _mapper.Map<SalesOrderDto>(_orderRepo.GetById(id));
+
         public int PlaceOrder(CreateSalesOrderDto dto)
         {
-            // Map từ DTO sang Entity
             var order = _mapper.Map<SalesOrder>(dto);
-            
-            // Bổ sung logic nghiệp vụ (Số hóa số đơn hàng và tính tổng tiền)
             order.OrderNumber = "SO-" + DateTime.Now.Ticks.ToString().Substring(10);
             order.TotalAmount = dto.Items.Sum(i => (i.UnitPrice - i.Discount) * i.Quantity);
-
             return _orderRepo.CreateOrder(order);
         }
+
+        public void UpdateStatus(int id, string status) => _orderRepo.UpdateStatus(id, status);
     }
 }

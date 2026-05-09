@@ -1,5 +1,3 @@
-using System;
-
 namespace MiniERP_API.Models.Entities
 {
     public class Product : BaseEntity
@@ -10,14 +8,10 @@ namespace MiniERP_API.Models.Entities
         public string SKU { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public string SeriesName { get; set; }
-        public string Scale { get; set; }
-        public string Grade { get; set; }
-        public decimal? Weight { get; set; }
+        public string Unit { get; set; }
         public decimal CostPrice { get; set; }
         public decimal RetailPrice { get; set; }
         public int StockQuantity { get; set; }
         public string ImageUrl { get; set; }
-        public bool IsActive { get; set; }
     }
 }

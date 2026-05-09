@@ -7,7 +7,7 @@ namespace MiniERP_API.Models.DTOs
         public int? BrandId { get; set; }
         public string SKU { get; set; }
         public string Name { get; set; }
-        public string SeriesName { get; set; }
+        public string Unit { get; set; }
         public decimal RetailPrice { get; set; }
         public int StockQuantity { get; set; }
         public string ImageUrl { get; set; }

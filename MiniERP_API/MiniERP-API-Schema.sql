@@ -100,7 +100,6 @@ CREATE TABLE [dbo].[Customers](
 	[Email] [nvarchar](256) NULL,
 	[Phone] [nvarchar](50) NULL,
 	[Address] [nvarchar](500) NULL,
-	[City] [nvarchar](100) NULL,
 	[CreatedAt] [datetimeoffset](7) NOT NULL DEFAULT (sysutcdatetime()),
 	[UpdatedAt] [datetimeoffset](7) NULL,
 	[IsDeleted] [bit] NOT NULL DEFAULT (0),

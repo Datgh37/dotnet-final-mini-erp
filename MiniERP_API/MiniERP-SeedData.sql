@@ -49,8 +49,8 @@ VALUES
 GO
 
 -- 8. Seed Customers
-INSERT INTO [dbo].[Customers] ([Name], [Email], [Phone], [Address], [City])
+INSERT INTO [dbo].[Customers] ([Name], [Email], [Phone], [Address])
 VALUES 
-('Nguyen Van A', 'customerA@gmail.com', '0901234567', '123 District 1', 'Ho Chi Minh'),
-('Tran Thi B', 'customerB@yahoo.com', '0907654321', '456 District 3', 'Ho Chi Minh');
+('Nguyen Van A', 'customerA@gmail.com', '0901234567', '123 District 1, Ho Chi Minh'),
+('Tran Thi B', 'customerB@yahoo.com', '0907654321', '456 District 3, Ho Chi Minh');
 GO

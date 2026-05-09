@@ -5,24 +5,39 @@ using MiniERP_API.Services.Interfaces;
 namespace MiniERP_API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/sales-orders")]
     public class SalesOrdersController : ControllerBase
     {
         private readonly ISalesOrderService _service;
         public SalesOrdersController(ISalesOrderService service) => _service = service;
 
-        [HttpPost]
-        public IActionResult CreateNewOrder(CreateSalesOrderDto dto)
+        [HttpGet]
+        public IActionResult GetAll() => Ok(_service.GetAll());
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
         {
-            try
-            {
-                var id = _service.PlaceOrder(dto);
-                return Ok(new { Message = "Đơn hàng đã được tạo thành công", OrderId = id });
-            }
-            catch (System.Exception ex)
-            {
-                return BadRequest(new { Error = ex.Message });
-            }
+            var order = _service.GetById(id);
+            return order == null ? NotFound() : Ok(order);
         }
+
+        [HttpPost]
+        public IActionResult PlaceOrder(CreateSalesOrderDto dto)
+        {
+            var id = _service.PlaceOrder(dto);
+            return CreatedAtAction(nameof(GetById), new { id }, dto);
+        }
+
+        [HttpPatch("{id}/status")]
+        public IActionResult UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
+        {
+            _service.UpdateStatus(id, dto.Status);
+            return Ok(new { message = "Cập nhật trạng thái đơn hàng thành công." });
+        }
+    }
+
+    public class UpdateStatusDto
+    {
+        public string Status { get; set; }
     }
 }

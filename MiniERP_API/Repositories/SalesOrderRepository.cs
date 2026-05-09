@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Text;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
@@ -10,66 +12,103 @@ namespace MiniERP_API.Repositories
 {
     public class SalesOrderRepository : ISalesOrderRepository
     {
-        private readonly string _connectionString;
+        private readonly string _cs;
 
-        public SalesOrderRepository(IConfiguration configuration)
+        public SalesOrderRepository(IConfiguration config)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+            _cs = config.GetConnectionString("DefaultConnection");
         }
 
+        public IEnumerable<SalesOrder> GetAll()
+        {
+            var list = new List<SalesOrder>();
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand("SELECT * FROM SalesOrders WHERE IsDeleted = 0 ORDER BY CreatedAt DESC", conn);
+            conn.Open();
+            using var r = cmd.ExecuteReader();
+            while (r.Read()) list.Add(MapOrder(r));
+            return list;
+        }
+
+        public SalesOrder GetById(int id)
+        {
+            SalesOrder order = null;
+            using var conn = new SqlConnection(_cs);
+            conn.Open();
+
+            var cmd1 = new SqlCommand(Queries.GetSalesOrderById, conn);
+            cmd1.Parameters.AddWithValue("@Id", id);
+            using (var r = cmd1.ExecuteReader())
+                if (r.Read()) order = MapOrder(r);
+
+            if (order == null) return null;
+
+            var cmd2 = new SqlCommand(Queries.GetSalesOrderItemsByOrderId, conn);
+            cmd2.Parameters.AddWithValue("@OrderId", id);
+            using (var r = cmd2.ExecuteReader())
+                while (r.Read())
+                    order.Items.Add(new SalesOrderItem
+                    {
+                        Id = (int)r["Id"], SalesOrderId = (int)r["SalesOrderId"],
+                        ProductId = (int)r["ProductId"], Quantity = (int)r["Quantity"],
+                        UnitPrice = (decimal)r["UnitPrice"],
+                        Discount = r["Discount"] == DBNull.Value ? 0 : (decimal)r["Discount"]
+                    });
+            return order;
+        }
+
+        /// <summary>Sử dụng Stored Procedure sp_CreateSalesOrder</summary>
         public int CreateOrder(SalesOrder order)
         {
-            using (var conn = new SqlConnection(_connectionString))
+            // Xây dựng XML cho danh sách Items
+            var xml = new StringBuilder("<Items>");
+            foreach (var item in order.Items)
             {
-                conn.Open();
-                using (var transaction = conn.BeginTransaction())
-                {
-                    try
-                    {
-                        var cmdHeader = new SqlCommand(Queries.InsertSalesOrder, conn, transaction);
-                        cmdHeader.Parameters.AddWithValue("@OrderNumber", order.OrderNumber);
-                        cmdHeader.Parameters.AddWithValue("@CustomerId", (object)order.CustomerId ?? DBNull.Value);
-                        cmdHeader.Parameters.AddWithValue("@OrderDate", order.OrderDate);
-                        cmdHeader.Parameters.AddWithValue("@Status", order.Status);
-                        cmdHeader.Parameters.AddWithValue("@PaymentMethod", order.PaymentMethod);
-                        cmdHeader.Parameters.AddWithValue("@PaymentStatus", order.PaymentStatus);
-                        cmdHeader.Parameters.AddWithValue("@TotalAmount", order.TotalAmount);
-                        cmdHeader.Parameters.AddWithValue("@ShippingAddress", (object)order.ShippingAddress ?? DBNull.Value);
-                        cmdHeader.Parameters.AddWithValue("@Notes", (object)order.Notes ?? DBNull.Value);
-                        cmdHeader.Parameters.AddWithValue("@CreatedBy", (object)order.CreatedBy ?? DBNull.Value);
-
-                        int orderId = (int)cmdHeader.ExecuteScalar();
-
-                        foreach (var item in order.Items)
-                        {
-                            var cmdItem = new SqlCommand(Queries.InsertSalesOrderItem, conn, transaction);
-                            cmdItem.Parameters.AddWithValue("@SalesOrderId", orderId);
-                            cmdItem.Parameters.AddWithValue("@ProductId", item.ProductId);
-                            cmdItem.Parameters.AddWithValue("@Quantity", item.Quantity);
-                            cmdItem.Parameters.AddWithValue("@UnitPrice", item.UnitPrice);
-                            cmdItem.Parameters.AddWithValue("@Discount", item.Discount);
-                            cmdItem.ExecuteNonQuery();
-
-                            var cmdStock = new SqlCommand(Queries.UpdateProductStock, conn, transaction);
-                            cmdStock.Parameters.AddWithValue("@ProductId", item.ProductId);
-                            cmdStock.Parameters.AddWithValue("@Quantity", item.Quantity);
-                            
-                            int affected = cmdStock.ExecuteNonQuery();
-                            if (affected == 0) throw new Exception($"Sản phẩm ID {item.ProductId} không đủ tồn kho!");
-                        }
-
-                        transaction.Commit();
-                        return orderId;
-                    }
-                    catch (Exception)
-                    {
-                        transaction.Rollback();
-                        throw;
-                    }
-                }
+                xml.Append("<Item>");
+                xml.Append($"<ProductId>{item.ProductId}</ProductId>");
+                xml.Append($"<Quantity>{item.Quantity}</Quantity>");
+                xml.Append($"<UnitPrice>{item.UnitPrice}</UnitPrice>");
+                xml.Append($"<Discount>{item.Discount}</Discount>");
+                xml.Append("</Item>");
             }
+            xml.Append("</Items>");
+
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand("sp_CreateSalesOrder", conn) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.AddWithValue("@OrderNumber", order.OrderNumber);
+            cmd.Parameters.AddWithValue("@CustomerId", (object)order.CustomerId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@OrderDate", order.OrderDate);
+            cmd.Parameters.AddWithValue("@PaymentMethod", (object)order.PaymentMethod ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ShippingAddress", (object)order.ShippingAddress ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@Notes", (object)order.Notes ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@CreatedBy", (object)order.CreatedBy ?? DBNull.Value);
+            cmd.Parameters.Add(new SqlParameter("@OrderItems", SqlDbType.Xml) { Value = xml.ToString() });
+
+            conn.Open();
+            return (int)cmd.ExecuteScalar();
         }
 
-        public SalesOrder GetById(int id) => null;
+        public void UpdateStatus(int id, string status)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand("UPDATE SalesOrders SET Status = @Status, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+            cmd.Parameters.AddWithValue("@Status", status);
+            conn.Open();
+            cmd.ExecuteNonQuery();
+        }
+
+        private SalesOrder MapOrder(SqlDataReader r) => new SalesOrder
+        {
+            Id = (int)r["Id"], OrderNumber = r["OrderNumber"].ToString(),
+            CustomerId = r["CustomerId"] as int?, OrderDate = (DateTime)r["OrderDate"],
+            Status = r["Status"]?.ToString(), PaymentMethod = r["PaymentMethod"]?.ToString(),
+            PaymentStatus = r["PaymentStatus"]?.ToString(),
+            TotalAmount = r["TotalAmount"] == DBNull.Value ? 0 : (decimal)r["TotalAmount"],
+            ShippingAddress = r["ShippingAddress"]?.ToString(), Notes = r["Notes"]?.ToString(),
+            CreatedBy = r["CreatedBy"] as int?,
+            CreatedAt = (DateTimeOffset)r["CreatedAt"], UpdatedAt = r["UpdatedAt"] as DateTimeOffset?,
+            IsDeleted = (bool)r["IsDeleted"]
+        };
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
@@ -36,7 +37,6 @@ namespace MiniERP_API.Repositories
                             Phone = reader["Phone"].ToString(),
                             Email = reader["Email"].ToString(),
                             Address = reader["Address"].ToString(),
-                            IsActive = (bool)reader["IsActive"],
                             CreatedAt = (DateTimeOffset)reader["CreatedAt"],
                             UpdatedAt = reader["UpdatedAt"] == DBNull.Value ? null : (DateTimeOffset?)reader["UpdatedAt"],
                             IsDeleted = (bool)reader["IsDeleted"]
@@ -65,7 +65,6 @@ namespace MiniERP_API.Repositories
                             Phone = reader["Phone"].ToString(),
                             Email = reader["Email"].ToString(),
                             Address = reader["Address"].ToString(),
-                            IsActive = (bool)reader["IsActive"],
                             CreatedAt = (DateTimeOffset)reader["CreatedAt"],
                             UpdatedAt = reader["UpdatedAt"] == DBNull.Value ? null : (DateTimeOffset?)reader["UpdatedAt"],
                             IsDeleted = (bool)reader["IsDeleted"]
@@ -111,7 +110,8 @@ namespace MiniERP_API.Repositories
         {
             using (var conn = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand(Queries.DeleteSupplier, conn);
+                var cmd = new SqlCommand("sp_SoftDelete", conn) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.AddWithValue("@TableName", "Suppliers");
                 cmd.Parameters.AddWithValue("@Id", id);
                 conn.Open();
                 cmd.ExecuteNonQuery();
