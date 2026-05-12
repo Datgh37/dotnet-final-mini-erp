@@ -14,6 +14,17 @@ namespace MiniERP_API
 
             // Add services to the container.
             builder.Services.AddControllers();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy =>
+                    {
+                        policy
+                            .AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+            });
 
             // Đăng ký AutoMapper
             builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(AutoMapperProfile).Assembly));
@@ -66,6 +77,7 @@ namespace MiniERP_API
             }
 
             app.UseHttpsRedirection();
+            app.UseCors("AllowAll");
             app.UseAuthorization();
             app.MapControllers();
 
