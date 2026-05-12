@@ -24,6 +24,12 @@ namespace MiniERP_API.Services
             return _mapper.Map<IEnumerable<SupplierDto>>(suppliers);
         }
 
+        public SupplierDto GetById(int id)
+        {
+            var supplier = _repo.GetById(id);
+            return _mapper.Map<SupplierDto>(supplier);
+        }
+
         public int Create(Supplier s) => _repo.Add(s);
         public void Update(Supplier s) => _repo.Update(s);
         public void Delete(int id) => _repo.Delete(id);

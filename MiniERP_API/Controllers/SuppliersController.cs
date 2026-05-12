@@ -14,6 +14,14 @@ namespace MiniERP_API.Controllers
         [HttpGet]
         public IActionResult GetSupplierList() => Ok(_service.GetAll());
 
+        [HttpGet("{id}")]
+        public IActionResult GetSupplierById(int id)
+        {
+            var supplier = _service.GetById(id);
+            if (supplier == null) return NotFound();
+            return Ok(supplier);
+        }
+
         [HttpPost]
         public IActionResult CreateSupplier(Supplier s)
         {
