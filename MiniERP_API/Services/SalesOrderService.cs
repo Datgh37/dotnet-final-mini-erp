@@ -27,7 +27,16 @@ namespace MiniERP_API.Services
         {
             var order = _mapper.Map<SalesOrder>(dto);
             order.OrderNumber = "SO-" + DateTime.Now.Ticks.ToString().Substring(10);
-            order.TotalAmount = dto.Items.Sum(i => (i.UnitPrice - i.Discount) * i.Quantity);
+            
+            if (dto.Items != null)
+            {
+                order.TotalAmount = dto.Items.Sum(i => (i.UnitPrice - i.Discount) * i.Quantity);
+            }
+            else
+            {
+                order.TotalAmount = 0;
+            }
+
             return _orderRepo.CreateOrder(order);
         }
 

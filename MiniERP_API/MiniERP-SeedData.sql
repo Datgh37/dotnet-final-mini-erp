@@ -54,3 +54,57 @@ VALUES
 ('Nguyen Van A', 'customerA@gmail.com', '0901234567', '123 District 1, Ho Chi Minh'),
 ('Tran Thi B', 'customerB@yahoo.com', '0907654321', '456 District 3, Ho Chi Minh');
 GO
+
+-- 9. Seed Purchase Orders
+DECLARE @SupplierId INT = (SELECT TOP 1 Id FROM Suppliers WHERE Name = 'Tech Supply Co.');
+DECLARE @AdminId INT = (SELECT TOP 1 Id FROM Users WHERE UserName = 'admin');
+
+INSERT INTO [dbo].[PurchaseOrders] ([PONumber], [SupplierId], [OrderDate], [ExpectedDate], [ReceivedDate], [Status], [TotalAmount], [Notes], [CreatedBy])
+VALUES 
+('PO-2023001', @SupplierId, '2023-10-01', '2023-10-10', '2023-10-09', 'RECEIVED', 5000.00, 'First batch of smartphones', @AdminId),
+('PO-2023002', @SupplierId, '2023-10-15', '2023-10-25', NULL, 'PENDING', 3000.00, 'Restock TVs', @AdminId);
+GO
+
+-- 10. Seed Purchase Order Items
+DECLARE @PO1 INT = (SELECT TOP 1 Id FROM PurchaseOrders WHERE PONumber = 'PO-2023001');
+DECLARE @PO2 INT = (SELECT TOP 1 Id FROM PurchaseOrders WHERE PONumber = 'PO-2023002');
+DECLARE @Prod1 INT = (SELECT TOP 1 Id FROM Products WHERE SKU = 'SS-S24U');
+DECLARE @Prod2 INT = (SELECT TOP 1 Id FROM Products WHERE SKU = 'SS-TV65');
+
+INSERT INTO [dbo].[PurchaseOrderItems] ([PurchaseOrderId], [ProductId], [Quantity], [UnitPrice])
+VALUES 
+(@PO1, @Prod1, 5, 1000.00),
+(@PO2, @Prod2, 3, 1000.00);
+GO
+
+-- 11. Seed Sales Orders
+DECLARE @CustomerId INT = (SELECT TOP 1 Id FROM Customers WHERE Email = 'customerA@gmail.com');
+DECLARE @AdminId INT = (SELECT TOP 1 Id FROM Users WHERE UserName = 'admin');
+
+INSERT INTO [dbo].[SalesOrders] ([OrderNumber], [CustomerId], [OrderDate], [Status], [PaymentMethod], [PaymentStatus], [TotalAmount], [ShippingAddress], [Notes], [CreatedBy])
+VALUES 
+('SO-2023001', @CustomerId, '2023-10-10', 'COMPLETED', 'Cash', 'PAID', 1300.00, '123 District 1, Ho Chi Minh', 'Deliver in the morning', @AdminId),
+('SO-2023002', @CustomerId, '2023-10-20', 'NEW', 'Credit Card', 'PENDING', 2200.00, '123 District 1, Ho Chi Minh', 'Call before delivery', @AdminId);
+GO
+
+-- 12. Seed Sales Order Items
+DECLARE @SO1 INT = (SELECT TOP 1 Id FROM SalesOrders WHERE OrderNumber = 'SO-2023001');
+DECLARE @SO2 INT = (SELECT TOP 1 Id FROM SalesOrders WHERE OrderNumber = 'SO-2023002');
+DECLARE @Prod1 INT = (SELECT TOP 1 Id FROM Products WHERE SKU = 'SS-S24U');
+DECLARE @Prod2 INT = (SELECT TOP 1 Id FROM Products WHERE SKU = 'SS-TV65');
+
+INSERT INTO [dbo].[SalesOrderItems] ([SalesOrderId], [ProductId], [Quantity], [UnitPrice], [Discount])
+VALUES 
+(@SO1, @Prod1, 1, 1300.00, 0),
+(@SO2, @Prod2, 2, 1100.00, 0);
+GO
+
+-- 13. Seed Stock Movements
+DECLARE @Prod1 INT = (SELECT TOP 1 Id FROM Products WHERE SKU = 'SS-S24U');
+DECLARE @AdminId INT = (SELECT TOP 1 Id FROM Users WHERE UserName = 'admin');
+
+INSERT INTO [dbo].[StockMovements] ([ProductId], [MovementType], [Quantity], [Reference], [CreatedBy])
+VALUES 
+(@Prod1, 'IN', 5, 'PO-2023001', @AdminId),
+(@Prod1, 'OUT', 1, 'SO-2023001', @AdminId);
+GO

@@ -57,21 +57,15 @@ namespace MiniERP_API.Repositories
             return order;
         }
 
-        /// <summary>Sử dụng Stored Procedure sp_CreateSalesOrder</summary>
+        /// <summary>Sử dụng Stored Procedure sp_CreateSalesOrder với JSON</summary>
         public int CreateOrder(SalesOrder order)
         {
-            // Xây dựng XML cho danh sách Items
-            var xml = new StringBuilder("<Items>");
-            foreach (var item in order.Items)
+            // Xây dựng JSON cho danh sách Items
+            string jsonItems = "[]";
+            if (order.Items != null)
             {
-                xml.Append("<Item>");
-                xml.Append($"<ProductId>{item.ProductId}</ProductId>");
-                xml.Append($"<Quantity>{item.Quantity}</Quantity>");
-                xml.Append($"<UnitPrice>{item.UnitPrice}</UnitPrice>");
-                xml.Append($"<Discount>{item.Discount}</Discount>");
-                xml.Append("</Item>");
+                jsonItems = System.Text.Json.JsonSerializer.Serialize(order.Items);
             }
-            xml.Append("</Items>");
 
             using var conn = new SqlConnection(_cs);
             var cmd = new SqlCommand("sp_CreateSalesOrder", conn) { CommandType = CommandType.StoredProcedure };
@@ -82,7 +76,7 @@ namespace MiniERP_API.Repositories
             cmd.Parameters.AddWithValue("@ShippingAddress", (object)order.ShippingAddress ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Notes", (object)order.Notes ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@CreatedBy", (object)order.CreatedBy ?? DBNull.Value);
-            cmd.Parameters.Add(new SqlParameter("@OrderItems", SqlDbType.Xml) { Value = xml.ToString() });
+            cmd.Parameters.AddWithValue("@OrderItems", jsonItems);
 
             conn.Open();
                 return (int)cmd.ExecuteScalar();
