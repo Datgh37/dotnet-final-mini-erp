@@ -1,0 +1,227 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">Reports Dashboard</h2>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5>Revenue Report</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="revenueFrom" class="form-label">From Date</label>
+                    <input type="date" class="form-control" id="revenueFrom" required>
+                </div>
+                <div class="mb-3">
+                    <label for="revenueTo" class="form-label">To Date</label>
+                    <input type="date" class="form-control" id="revenueTo" required>
+                </div>
+                <button class="btn btn-primary btn-block" onclick="loadRevenueReport()">Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5>Top Selling Products</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="topCount" class="form-label">Top Count</label>
+                    <input type="number" class="form-control" id="topCount" value="10" min="1">
+                </div>
+                <button class="btn btn-success btn-block" onclick="loadTopSelling()">Generate</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-warning text-white">
+                <h5>Low Stock Products</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="threshold" class="form-label">Threshold</label>
+                    <input type="number" class="form-control" id="threshold" value="10" min="1">
+                </div>
+                <button class="btn btn-warning btn-block" onclick="loadLowStock()">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="reportContainer">
+    <div class="alert alert-secondary">
+        Select a report option and click Generate to view results
+    </div>
+</div>
+
+<script>
+    function setDefaultDates() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        
+        document.getElementById("revenueTo").valueAsDate = today;
+        document.getElementById("revenueFrom").valueAsDate = firstDay;
+    }
+
+    async function loadRevenueReport() {
+        try {
+            const from = document.getElementById("revenueFrom").value;
+            const to = document.getElementById("revenueTo").value;
+            
+            if (!from || !to) {
+                alert('Please select both dates');
+                return;
+            }
+
+            const response = await fetch(`https://localhost:7279/api/Reports/revenue?from=${from}&to=${to}`);
+            const data = await response.json();
+            
+            let html = `
+                <div class="card mt-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5>Revenue Report (${from} to ${to})</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Revenue</th>
+                                    <th>Orders</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            data.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${new Date(item.date).toLocaleDateString()}</td>
+                        <td>${item.revenue.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                        <td>${item.orderCount}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById("reportContainer").innerHTML = html;
+        }
+        catch(error) {
+            console.log(error);
+            alert("Load revenue report failed");
+        }
+    }
+
+    async function loadTopSelling() {
+        try {
+            const top = document.getElementById("topCount").value;
+            
+            const response = await fetch(`https://localhost:7279/api/Reports/top-selling?top=${top}`);
+            const data = await response.json();
+            
+            let html = `
+                <div class="card mt-4">
+                    <div class="card-header bg-success text-white">
+                        <h5>Top ${top} Selling Products</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            data.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${item.productName}</td>
+                        <td>${item.quantitySold}</td>
+                        <td>${item.revenue.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById("reportContainer").innerHTML = html;
+        }
+        catch(error) {
+            console.log(error);
+            alert("Load top selling report failed");
+        }
+    }
+
+    async function loadLowStock() {
+        try {
+            const threshold = document.getElementById("threshold").value;
+            
+            const response = await fetch(`https://localhost:7279/api/Reports/low-stock?threshold=${threshold}`);
+            const data = await response.json();
+            
+            let html = `
+                <div class="card mt-4">
+                    <div class="card-header bg-warning text-white">
+                        <h5>Low Stock Products (Threshold: ${threshold})</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Current Stock</th>
+                                    <th>Threshold</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            data.forEach(item => {
+                html += `
+                    <tr>
+                        <td>${item.productName}</td>
+                        <td><span class="badge bg-danger">${item.currentStock}</span></td>
+                        <td>${item.threshold}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById("reportContainer").innerHTML = html;
+        }
+        catch(error) {
+            console.log(error);
+            alert("Load low stock report failed");
+        }
+    }
+
+    setDefaultDates();
+</script>
