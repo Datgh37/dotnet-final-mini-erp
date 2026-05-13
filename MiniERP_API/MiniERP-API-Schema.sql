@@ -198,7 +198,7 @@ CREATE PROCEDURE [dbo].[sp_CreateSalesOrder]
     @ShippingAddress nvarchar(500),
     @Notes nvarchar(max),
     @CreatedBy int,
-    @OrderItems xml -- Truyền danh sách item dưới dạng XML để xử lý trong 1 lần gọi
+    @OrderItems nvarchar(max) -- Truyền danh sách item dưới dạng JSON
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -211,15 +211,21 @@ BEGIN
         
         SET @SalesOrderId = SCOPE_IDENTITY();
 
-        -- 2. Đọc XML và chèn vào SalesOrderItems
+        -- 2. Đọc JSON và chèn vào SalesOrderItems
         INSERT INTO [dbo].[SalesOrderItems] (SalesOrderId, ProductId, Quantity, UnitPrice, Discount)
         SELECT 
             @SalesOrderId,
-            T.Item.value('(ProductId)[1]', 'int'),
-            T.Item.value('(Quantity)[1]', 'int'),
-            T.Item.value('(UnitPrice)[1]', 'decimal(18,2)'),
-            T.Item.value('(Discount)[1]', 'decimal(18,2)')
-        FROM @OrderItems.nodes('/Items/Item') AS T(Item);
+            ProductId,
+            Quantity,
+            UnitPrice,
+            Discount
+        FROM OPENJSON(@OrderItems)
+        WITH (
+            ProductId int '$.ProductId',
+            Quantity int '$.Quantity',
+            UnitPrice decimal(18,2) '$.UnitPrice',
+            Discount decimal(18,2) '$.Discount'
+        );
 
         -- 3. Cập nhật tồn kho và ghi nhật ký StockMovements
         DECLARE @Pid int, @Qty int;

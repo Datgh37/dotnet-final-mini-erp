@@ -22,7 +22,14 @@ namespace MiniERP_API.Services
         {
             var order = _mapper.Map<PurchaseOrder>(dto);
             order.PONumber = "PO-" + DateTime.Now.Ticks.ToString().Substring(10);
-            order.TotalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
+            if (dto.Items != null)
+            {
+                order.TotalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
+            }
+            else
+            {
+                order.TotalAmount = 0;
+            }
             return _repo.CreateOrder(order);
         }
 
