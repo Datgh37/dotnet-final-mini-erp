@@ -14,8 +14,13 @@ namespace MiniERP_API.Models.DTOs
 
     public class StockAdjustDto
     {
+        /// <example>1</example>
         public int ProductId { get; set; }
+        
+        /// <example>10</example>
         public int Quantity { get; set; } // Số lượng điều chỉnh (+ hoặc -)
+        
+        /// <example>Kiểm kho định kỳ</example>
         public string Reason { get; set; }
     }
 }

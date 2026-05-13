@@ -20,20 +20,38 @@ namespace MiniERP_API.Services
 
         public int CreateOrder(CreatePurchaseOrderDto dto)
         {
+            if (dto.Items == null || !dto.Items.Any())
+                throw new System.Exception("Đơn hàng phải có ít nhất một sản phẩm.");
+
+            if (dto.Items.Any(i => i.Quantity <= 0))
+                throw new System.Exception("Số lượng sản phẩm phải lớn hơn 0.");
+
+            if (dto.Items.Any(i => i.UnitPrice < 0))
+                throw new System.Exception("Đơn giá không được âm.");
+
             var order = _mapper.Map<PurchaseOrder>(dto);
             order.PONumber = "PO-" + DateTime.Now.Ticks.ToString().Substring(10);
-            if (dto.Items != null)
-            {
-                order.TotalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
-            }
-            else
-            {
-                order.TotalAmount = 0;
-            }
+            order.TotalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
+
             return _repo.CreateOrder(order);
         }
 
-        public void ReceiveOrder(int id, DateTime receivedDate, int receivedBy) => _repo.ReceiveOrder(id, receivedDate, receivedBy);
-        public void CancelOrder(int id) => _repo.CancelOrder(id);
+        public void ReceiveOrder(int id, DateTime receivedDate, int receivedBy)
+        {
+            var order = _repo.GetById(id);
+            if (order == null) throw new System.Exception("Đơn mua hàng không tồn tại.");
+            if (order.Status != "PENDING") throw new System.Exception("Đơn mua hàng đã được xử lý hoặc hủy.");
+
+            _repo.ReceiveOrder(id, receivedDate, receivedBy);
+        }
+
+        public void CancelOrder(int id)
+        {
+            var order = _repo.GetById(id);
+            if (order == null) throw new System.Exception("Đơn mua hàng không tồn tại.");
+            if (order.Status != "PENDING") throw new System.Exception("Chỉ có thể hủy đơn đang ở trạng thái PENDING.");
+
+            _repo.CancelOrder(id);
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
+using MiniERP_API.Helpers;
 using MiniERP_API.Repositories.Interfaces;
 
 namespace MiniERP_API.Repositories
@@ -16,7 +17,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<StockMovement>();
             using var conn = new SqlConnection(_cs);
-            var sql = "SELECT * FROM StockMovements WHERE IsDeleted = 0";
+            var sql = Queries.GetStockMovementsBase;
             if (productId.HasValue) sql += " AND ProductId = @ProductId";
             if (!string.IsNullOrEmpty(movementType)) sql += " AND MovementType = @Type";
             sql += " ORDER BY CreatedAt DESC";
@@ -46,14 +47,13 @@ namespace MiniERP_API.Repositories
             try
             {
                 // 1. Cập nhật tồn kho
-                var cmd1 = new SqlCommand("UPDATE Products SET StockQuantity = StockQuantity + @Qty, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn, tran);
+                var cmd1 = new SqlCommand(Queries.UpdateStockQuantity, conn, tran);
                 cmd1.Parameters.AddWithValue("@Qty", quantity);
                 cmd1.Parameters.AddWithValue("@Id", productId);
                 cmd1.ExecuteNonQuery();
 
                 // 2. Ghi nhật ký
-                var cmd2 = new SqlCommand(@"INSERT INTO StockMovements (ProductId, MovementType, Quantity, Reference, CreatedBy) 
-                    VALUES (@ProductId, 'ADJUSTMENT', @Qty, @Reason, @CreatedBy)", conn, tran);
+                var cmd2 = new SqlCommand(Queries.InsertStockMovement, conn, tran);
                 cmd2.Parameters.AddWithValue("@ProductId", productId);
                 cmd2.Parameters.AddWithValue("@Qty", quantity);
                 cmd2.Parameters.AddWithValue("@Reason", (object)reason ?? DBNull.Value);

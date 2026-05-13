@@ -7,7 +7,7 @@ GO
 
 -- 2. Seed Users
 INSERT INTO [dbo].[Users] ([UserName], [Email], [PasswordHash], [FullName])
-VALUES ('admin', 'admin@minierp.com', 'AQAAAAEAACcQAAAAEAD...', 'System Administrator');
+VALUES ('admin', 'admin@minierp.com', 'admin@123', 'System Administrator');
 GO
 
 -- 3. Seed UserRoles

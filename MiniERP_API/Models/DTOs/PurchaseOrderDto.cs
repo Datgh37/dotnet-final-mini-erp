@@ -27,17 +27,30 @@ namespace MiniERP_API.Models.DTOs
 
     public class CreatePurchaseOrderDto
     {
+        /// <example>1</example>
         public int? SupplierId { get; set; }
+        
+        /// <example>2026-05-15T00:00:00Z</example>
         public DateTime? OrderDate { get; set; }
+        
+        /// <example>2026-05-20T00:00:00Z</example>
         public DateTime? ExpectedDate { get; set; }
+        
+        /// <example>Nhập hàng bổ sung kho tháng 5</example>
         public string Notes { get; set; }
+        
         public List<CreatePurchaseOrderItemDto> Items { get; set; }
     }
 
     public class CreatePurchaseOrderItemDto
     {
+        /// <example>1</example>
         public int ProductId { get; set; }
+        
+        /// <example>50</example>
         public int Quantity { get; set; }
+        
+        /// <example>85000</example>
         public decimal UnitPrice { get; set; }
     }
 }

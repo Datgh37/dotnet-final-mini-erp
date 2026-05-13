@@ -4,6 +4,7 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
+using MiniERP_API.Helpers;
 using MiniERP_API.Repositories.Interfaces;
 
 namespace MiniERP_API.Repositories
@@ -17,7 +18,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<PurchaseOrder>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM PurchaseOrders WHERE IsDeleted = 0 ORDER BY CreatedAt DESC", conn);
+            var cmd = new SqlCommand(Queries.GetAllPurchaseOrders, conn);
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(MapOrder(r));
@@ -31,7 +32,7 @@ namespace MiniERP_API.Repositories
             conn.Open();
 
             // Lấy thông tin đơn hàng
-            var cmd1 = new SqlCommand("SELECT * FROM PurchaseOrders WHERE Id = @Id AND IsDeleted = 0", conn);
+            var cmd1 = new SqlCommand(Queries.GetPurchaseOrderById, conn);
             cmd1.Parameters.AddWithValue("@Id", id);
             using (var r = cmd1.ExecuteReader())
                 if (r.Read()) order = MapOrder(r);
@@ -39,7 +40,7 @@ namespace MiniERP_API.Repositories
             if (order == null) return null;
 
             // Lấy danh sách items
-            var cmd2 = new SqlCommand("SELECT * FROM PurchaseOrderItems WHERE PurchaseOrderId = @Id", conn);
+            var cmd2 = new SqlCommand(Queries.GetPurchaseOrderItemsByOrderId, conn);
             cmd2.Parameters.AddWithValue("@Id", id);
             using (var r = cmd2.ExecuteReader())
                 while (r.Read())
@@ -59,9 +60,7 @@ namespace MiniERP_API.Repositories
             try
             {
                 // 1. Chèn PurchaseOrder
-                var cmd1 = new SqlCommand(@"INSERT INTO PurchaseOrders (PONumber, SupplierId, OrderDate, ExpectedDate, Status, TotalAmount, Notes, CreatedBy)
-                    VALUES (@PONumber, @SupplierId, @OrderDate, @ExpectedDate, 'PENDING', @TotalAmount, @Notes, @CreatedBy);
-                    SELECT CAST(SCOPE_IDENTITY() as int);", conn, tran);
+                var cmd1 = new SqlCommand(Queries.InsertPurchaseOrder, conn, tran);
                 cmd1.Parameters.AddWithValue("@PONumber", order.PONumber);
                 cmd1.Parameters.AddWithValue("@SupplierId", (object)order.SupplierId ?? DBNull.Value);
                 cmd1.Parameters.AddWithValue("@OrderDate", (object)order.OrderDate ?? DBNull.Value);
@@ -74,8 +73,7 @@ namespace MiniERP_API.Repositories
                 // 2. Chèn PurchaseOrderItems
                 foreach (var item in order.Items)
                 {
-                    var cmd2 = new SqlCommand(@"INSERT INTO PurchaseOrderItems (PurchaseOrderId, ProductId, Quantity, UnitPrice) 
-                        VALUES (@POId, @ProductId, @Qty, @Price)", conn, tran);
+                    var cmd2 = new SqlCommand(Queries.InsertPurchaseOrderItem, conn, tran);
                     cmd2.Parameters.AddWithValue("@POId", poId);
                     cmd2.Parameters.AddWithValue("@ProductId", item.ProductId);
                     cmd2.Parameters.AddWithValue("@Qty", item.Quantity);
@@ -108,7 +106,7 @@ namespace MiniERP_API.Repositories
         public void CancelOrder(int id)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("UPDATE PurchaseOrders SET Status = 'CANCELLED', UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id AND Status = 'PENDING'", conn);
+            var cmd = new SqlCommand(Queries.CancelPurchaseOrder, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             conn.Open();
             if (cmd.ExecuteNonQuery() == 0) throw new Exception("Đơn mua hàng không tồn tại hoặc đã được xử lý.");

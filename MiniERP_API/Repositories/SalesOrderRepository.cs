@@ -23,7 +23,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<SalesOrder>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM SalesOrders WHERE IsDeleted = 0 ORDER BY CreatedAt DESC", conn);
+            var cmd = new SqlCommand(Queries.GetAllSalesOrders, conn);
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(MapOrder(r));
@@ -85,7 +85,7 @@ namespace MiniERP_API.Repositories
         public void UpdateStatus(int id, string status)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("UPDATE SalesOrders SET Status = @Status, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn);
+            var cmd = new SqlCommand(Queries.UpdateSalesOrderStatus, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             cmd.Parameters.AddWithValue("@Status", status);
             conn.Open();

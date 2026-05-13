@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
+using MiniERP_API.Helpers;
 using MiniERP_API.Repositories.Interfaces;
 
 namespace MiniERP_API.Repositories
@@ -16,7 +17,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<ProductCategory>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM ProductCategories WHERE IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetAllCategories, conn);
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(Map(r));
@@ -26,7 +27,7 @@ namespace MiniERP_API.Repositories
         public ProductCategory GetById(int id)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM ProductCategories WHERE Id = @Id AND IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetCategoryById, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             conn.Open();
             using var r = cmd.ExecuteReader();
@@ -36,7 +37,7 @@ namespace MiniERP_API.Repositories
         public int Add(ProductCategory c)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("INSERT INTO ProductCategories (Name, ParentCategoryId) VALUES (@Name, @ParentId); SELECT CAST(SCOPE_IDENTITY() as int);", conn);
+            var cmd = new SqlCommand(Queries.InsertCategory, conn);
             cmd.Parameters.AddWithValue("@Name", c.Name);
             cmd.Parameters.AddWithValue("@ParentId", (object)c.ParentCategoryId ?? DBNull.Value);
             conn.Open();
@@ -46,7 +47,7 @@ namespace MiniERP_API.Repositories
         public void Update(ProductCategory c)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("UPDATE ProductCategories SET Name = @Name, ParentCategoryId = @ParentId, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn);
+            var cmd = new SqlCommand(Queries.UpdateCategory, conn);
             cmd.Parameters.AddWithValue("@Id", c.Id);
             cmd.Parameters.AddWithValue("@Name", c.Name);
             cmd.Parameters.AddWithValue("@ParentId", (object)c.ParentCategoryId ?? DBNull.Value);

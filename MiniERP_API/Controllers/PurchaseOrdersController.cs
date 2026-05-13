@@ -25,22 +25,34 @@ namespace MiniERP_API.Controllers
         [HttpPost]
         public IActionResult Create(CreatePurchaseOrderDto dto)
         {
-            var id = _service.CreateOrder(dto);
-            return CreatedAtAction(nameof(GetById), new { id }, dto);
+            try
+            {
+                var id = _service.CreateOrder(dto);
+                return CreatedAtAction(nameof(GetById), new { id }, dto);
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
 
         [HttpPatch("{id}/receive")]
         public IActionResult Receive(int id, [FromQuery] int receivedBy)
         {
-            _service.ReceiveOrder(id, DateTime.Now, receivedBy);
-            return Ok(new { message = "Đã xác nhận nhập kho thành công." });
+            try
+            {
+                _service.ReceiveOrder(id, DateTime.Now, receivedBy);
+                return Ok(new { message = "Đã xác nhận nhập kho thành công." });
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
 
         [HttpPatch("{id}/cancel")]
         public IActionResult Cancel(int id)
         {
-            _service.CancelOrder(id);
-            return Ok(new { message = "Đã hủy đơn mua hàng." });
+            try
+            {
+                _service.CancelOrder(id);
+                return Ok(new { message = "Đã hủy đơn mua hàng." });
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
     }
 }
