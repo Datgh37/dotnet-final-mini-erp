@@ -30,8 +30,19 @@ namespace MiniERP_API.Services
             return _mapper.Map<ProductDto>(product);
         }
 
-        public int CreateProduct(Product product) => _repo.Add(product);
-        public void UpdateProduct(Product product) => _repo.Update(product);
+        public int CreateProduct(Product product)
+        {
+            if (string.IsNullOrWhiteSpace(product.Name)) throw new System.Exception("Tên sản phẩm không được để trống.");
+            if (product.CostPrice < 0 || product.RetailPrice < 0) throw new System.Exception("Giá trị không hợp lệ.");
+            return _repo.Add(product);
+        }
+
+        public void UpdateProduct(Product product)
+        {
+            if (string.IsNullOrWhiteSpace(product.Name)) throw new System.Exception("Tên sản phẩm không được để trống.");
+            if (product.CostPrice < 0 || product.RetailPrice < 0) throw new System.Exception("Giá trị không hợp lệ.");
+            _repo.Update(product);
+        }
         public void DeleteProduct(int id) => _repo.Delete(id);
     }
 }

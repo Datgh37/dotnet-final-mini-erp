@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using MiniERP_API.Helpers;
 
 namespace MiniERP_API.Repositories
 {
@@ -35,14 +36,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<dynamic>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand(@"SELECT TOP (@Top) P.Id, P.Name, P.SKU, 
-                SUM(SOI.Quantity) AS TotalSold, SUM((SOI.UnitPrice - SOI.Discount) * SOI.Quantity) AS TotalRevenue
-                FROM SalesOrderItems SOI
-                JOIN Products P ON SOI.ProductId = P.Id
-                JOIN SalesOrders SO ON SOI.SalesOrderId = SO.Id
-                WHERE SO.Status = 'COMPLETED' AND SO.IsDeleted = 0
-                GROUP BY P.Id, P.Name, P.SKU
-                ORDER BY TotalSold DESC", conn);
+            var cmd = new SqlCommand(Queries.GetTopSellingProducts, conn);
             cmd.Parameters.AddWithValue("@Top", top);
             conn.Open();
             using var r = cmd.ExecuteReader();
@@ -59,10 +53,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<dynamic>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand(@"SELECT P.Id, P.Name, P.SKU, P.StockQuantity, PC.Name AS CategoryName
-                FROM Products P LEFT JOIN ProductCategories PC ON P.CategoryId = PC.Id
-                WHERE P.StockQuantity < @Threshold AND P.IsDeleted = 0
-                ORDER BY P.StockQuantity ASC", conn);
+            var cmd = new SqlCommand(Queries.GetLowStockProducts, conn);
             cmd.Parameters.AddWithValue("@Threshold", threshold);
             conn.Open();
             using var r = cmd.ExecuteReader();

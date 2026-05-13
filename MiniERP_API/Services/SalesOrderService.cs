@@ -25,21 +25,32 @@ namespace MiniERP_API.Services
 
         public int PlaceOrder(CreateSalesOrderDto dto)
         {
+            if (dto.Items == null || !dto.Items.Any())
+                throw new System.Exception("Đơn hàng phải có ít nhất một sản phẩm.");
+
+            if (dto.Items.Any(i => i.Quantity <= 0))
+                throw new System.Exception("Số lượng sản phẩm phải lớn hơn 0.");
+
+            if (dto.Items.Any(i => i.UnitPrice < 0 || i.Discount < 0))
+                throw new System.Exception("Giá và chiết khấu không được âm.");
+
             var order = _mapper.Map<SalesOrder>(dto);
             order.OrderNumber = "SO-" + DateTime.Now.Ticks.ToString().Substring(10);
-            
-            if (dto.Items != null)
-            {
-                order.TotalAmount = dto.Items.Sum(i => (i.UnitPrice - i.Discount) * i.Quantity);
-            }
-            else
-            {
-                order.TotalAmount = 0;
-            }
+            order.TotalAmount = dto.Items.Sum(i => (i.UnitPrice - i.Discount) * i.Quantity);
 
             return _orderRepo.CreateOrder(order);
         }
 
-        public void UpdateStatus(int id, string status) => _orderRepo.UpdateStatus(id, status);
+        public void UpdateStatus(int id, string status)
+        {
+            var order = _orderRepo.GetById(id);
+            if (order == null) throw new System.Exception("Đơn hàng không tồn tại.");
+
+            var validStatuses = new[] { "NEW", "PROCESSING", "SHIPPED", "COMPLETED", "CANCELLED" };
+            if (!validStatuses.Contains(status.ToUpper()))
+                throw new System.Exception("Trạng thái đơn hàng không hợp lệ.");
+
+            _orderRepo.UpdateStatus(id, status.ToUpper());
+        }
     }
 }

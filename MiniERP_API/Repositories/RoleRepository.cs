@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using MiniERP_API.Helpers;
 using MiniERP_API.Models.Entities;
 using MiniERP_API.Repositories.Interfaces;
 
@@ -17,7 +18,7 @@ namespace MiniERP_API.Repositories
             var list = new List<Role>();
             using (var conn = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand("SELECT * FROM Roles WHERE IsDeleted = 0", conn);
+                var cmd = new SqlCommand(Queries.GetAllRoles, conn);
                 conn.Open();
                 using (var r = cmd.ExecuteReader())
                     while (r.Read())
@@ -30,7 +31,7 @@ namespace MiniERP_API.Repositories
         {
             using (var conn = new SqlConnection(_connectionString))
             {
-                var cmd = new SqlCommand("INSERT INTO Roles (Name) VALUES (@Name); SELECT CAST(SCOPE_IDENTITY() as int);", conn);
+                var cmd = new SqlCommand(Queries.InsertRole, conn);
                 cmd.Parameters.AddWithValue("@Name", role.Name);
                 conn.Open();
                 return (int)cmd.ExecuteScalar();

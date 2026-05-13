@@ -18,8 +18,12 @@ namespace MiniERP_API.Controllers
         [HttpPost("adjust")]
         public IActionResult AdjustStock(StockAdjustDto dto, [FromQuery] int? userId)
         {
-            _service.AdjustStock(dto, userId);
-            return Ok(new { message = "Đã điều chỉnh tồn kho thành công." });
+            try
+            {
+                _service.AdjustStock(dto, userId);
+                return Ok(new { message = "Đã điều chỉnh tồn kho thành công." });
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
     }
 }

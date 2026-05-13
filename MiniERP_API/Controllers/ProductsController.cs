@@ -24,16 +24,24 @@ namespace MiniERP_API.Controllers
         [HttpPost]
         public IActionResult AddNewProduct(Product product)
         {
-            var id = _service.CreateProduct(product);
-            return CreatedAtAction(nameof(GetProductDetails), new { id }, product);
+            try
+            {
+                var id = _service.CreateProduct(product);
+                return CreatedAtAction(nameof(GetProductDetails), new { id }, product);
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
 
         [HttpPut("{id}")]
         public IActionResult UpdateProduct(int id, Product product)
         {
-            if (id != product.Id) return BadRequest();
-            _service.UpdateProduct(product);
-            return NoContent();
+            try
+            {
+                if (id != product.Id) return BadRequest(new { message = "ID không khớp." });
+                _service.UpdateProduct(product);
+                return NoContent();
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
 
         [HttpDelete("{id}")]

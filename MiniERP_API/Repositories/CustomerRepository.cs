@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
+using MiniERP_API.Helpers;
 using MiniERP_API.Repositories.Interfaces;
 
 namespace MiniERP_API.Repositories
@@ -16,7 +17,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<Customer>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM Customers WHERE IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetAllCustomers, conn);
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(Map(r));
@@ -26,7 +27,7 @@ namespace MiniERP_API.Repositories
         public Customer GetById(int id)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM Customers WHERE Id = @Id AND IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetCustomerById, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             conn.Open();
             using var r = cmd.ExecuteReader();
@@ -36,8 +37,7 @@ namespace MiniERP_API.Repositories
         public int Add(Customer c)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand(@"INSERT INTO Customers (UserId, Name, Email, Phone, Address) 
-                VALUES (@UserId, @Name, @Email, @Phone, @Address); SELECT CAST(SCOPE_IDENTITY() as int);", conn);
+            var cmd = new SqlCommand(Queries.InsertCustomer, conn);
             cmd.Parameters.AddWithValue("@UserId", (object)c.UserId ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Name", c.Name);
             cmd.Parameters.AddWithValue("@Email", (object)c.Email ?? DBNull.Value);
@@ -50,8 +50,7 @@ namespace MiniERP_API.Repositories
         public void Update(Customer c)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand(@"UPDATE Customers SET Name = @Name, Email = @Email, Phone = @Phone, 
-                Address = @Address, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn);
+            var cmd = new SqlCommand(Queries.UpdateCustomer, conn);
             cmd.Parameters.AddWithValue("@Id", c.Id);
             cmd.Parameters.AddWithValue("@Name", c.Name);
             cmd.Parameters.AddWithValue("@Email", (object)c.Email ?? DBNull.Value);

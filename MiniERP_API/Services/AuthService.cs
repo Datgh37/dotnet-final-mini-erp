@@ -21,10 +21,32 @@ namespace MiniERP_API.Services
         public AuthResponse Login(LoginRequest request)
         {
             var user = _userRepo.GetByUserName(request.UserName);
-            
-            // Sử dụng BCrypt để kiểm tra mật khẩu đã băm trong Database
-            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash)) 
-                throw new Exception("Sai tên đăng nhập hoặc mật khẩu.");
+            if (user == null) throw new Exception("Sai tên đăng nhập hoặc mật khẩu.");
+
+            bool isValid = false;
+
+            // Kiểm tra xem mật khẩu trong DB có phải là định dạng BCrypt không (bắt đầu bằng $2)
+            if (!string.IsNullOrEmpty(user.PasswordHash) && user.PasswordHash.StartsWith("$2"))
+            {
+                try 
+                { 
+                    isValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash); 
+                }
+                catch { isValid = false; }
+            }
+            else
+            {
+                // Nếu là mật khẩu thô (Raw) hoặc định dạng cũ, kiểm tra so khớp trực tiếp
+                if (request.Password == user.PasswordHash)
+                {
+                    isValid = true;
+                    // Tự động nâng cấp (Migration) lên BCrypt hash để bảo mật hơn
+                    var newHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                    _userRepo.ChangePassword(user.Id, newHash);
+                }
+            }
+
+            if (!isValid) throw new Exception("Sai tên đăng nhập hoặc mật khẩu.");
 
             return new AuthResponse
             {

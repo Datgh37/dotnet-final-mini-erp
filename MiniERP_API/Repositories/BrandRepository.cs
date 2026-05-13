@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
+using MiniERP_API.Helpers;
 using MiniERP_API.Repositories.Interfaces;
 
 namespace MiniERP_API.Repositories
@@ -16,7 +17,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<Brand>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM Brands WHERE IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetAllBrands, conn);
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(Map(r));
@@ -26,7 +27,7 @@ namespace MiniERP_API.Repositories
         public Brand GetById(int id)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM Brands WHERE Id = @Id AND IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetBrandById, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             conn.Open();
             using var r = cmd.ExecuteReader();
@@ -36,7 +37,7 @@ namespace MiniERP_API.Repositories
         public int Add(Brand b)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("INSERT INTO Brands (Name, Description) VALUES (@Name, @Desc); SELECT CAST(SCOPE_IDENTITY() as int);", conn);
+            var cmd = new SqlCommand(Queries.InsertBrand, conn);
             cmd.Parameters.AddWithValue("@Name", b.Name);
             cmd.Parameters.AddWithValue("@Desc", (object)b.Description ?? DBNull.Value);
             conn.Open();
@@ -46,7 +47,7 @@ namespace MiniERP_API.Repositories
         public void Update(Brand b)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("UPDATE Brands SET Name = @Name, Description = @Desc, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn);
+            var cmd = new SqlCommand(Queries.UpdateBrand, conn);
             cmd.Parameters.AddWithValue("@Id", b.Id);
             cmd.Parameters.AddWithValue("@Name", b.Name);
             cmd.Parameters.AddWithValue("@Desc", (object)b.Description ?? DBNull.Value);

@@ -31,8 +31,30 @@ namespace MiniERP_API.Services
 
         public void ChangePassword(int id, UserPasswordChangeDto dto)
         {
-            // Note: In real app, verify old password here
-            _repo.ChangePassword(id, dto.NewPassword); 
+            var user = _repo.GetById(id);
+            if (user == null) throw new System.Exception("Người dùng không tồn tại.");
+
+            bool isValid = false;
+            // Kiểm tra mật khẩu cũ (Hỗ trợ cả BCrypt và Raw password giống AuthService)
+            if (!string.IsNullOrEmpty(user.PasswordHash) && user.PasswordHash.StartsWith("$2"))
+            {
+                isValid = BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.PasswordHash);
+            }
+            else
+            {
+                if (dto.OldPassword == user.PasswordHash) isValid = true;
+            }
+
+            if (!isValid) throw new System.Exception("Mật khẩu cũ không chính xác.");
+
+            if (dto.OldPassword == dto.NewPassword)
+            {
+                throw new System.Exception("Mật khẩu mới không được trùng với mật khẩu cũ.");
+            }
+
+            // Hash mật khẩu mới và lưu lại
+            var newHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            _repo.ChangePassword(id, newHash);
         }
     }
 }

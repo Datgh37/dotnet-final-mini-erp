@@ -38,8 +38,15 @@ namespace MiniERP_API.Controllers
         [HttpPatch("{id}/password")]
         public IActionResult ChangePassword(int id, UserPasswordChangeDto dto)
         {
-            _service.ChangePassword(id, dto);
-            return Ok(new { message = "Đã đổi mật khẩu thành công." });
+            try 
+            { 
+                _service.ChangePassword(id, dto); 
+                return Ok(new { message = "Đã đổi mật khẩu thành công." });
+            }
+            catch (System.Exception ex) 
+            { 
+                return BadRequest(new { message = ex.Message }); 
+            }
         }
     }
 }

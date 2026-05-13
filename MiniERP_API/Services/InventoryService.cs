@@ -16,6 +16,10 @@ namespace MiniERP_API.Services
             => _mapper.Map<IEnumerable<StockMovementDto>>(_repo.GetMovements(productId, movementType));
 
         public void AdjustStock(StockAdjustDto dto, int? userId)
-            => _repo.AdjustStock(dto.ProductId, dto.Quantity, dto.Reason, userId);
+        {
+            if (dto.Quantity == 0) throw new System.Exception("Số lượng điều chỉnh phải khác 0.");
+            if (string.IsNullOrWhiteSpace(dto.Reason)) throw new System.Exception("Lý do điều chỉnh không được để trống.");
+            _repo.AdjustStock(dto.ProductId, dto.Quantity, dto.Reason, userId);
+        }
     }
 }

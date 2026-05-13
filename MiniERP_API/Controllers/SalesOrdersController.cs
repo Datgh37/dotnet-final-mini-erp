@@ -24,15 +24,23 @@ namespace MiniERP_API.Controllers
         [HttpPost]
         public IActionResult PlaceOrder(CreateSalesOrderDto dto)
         {
-            var id = _service.PlaceOrder(dto);
-            return CreatedAtAction(nameof(GetById), new { id }, dto);
+            try
+            {
+                var id = _service.PlaceOrder(dto);
+                return CreatedAtAction(nameof(GetById), new { id }, dto);
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
 
         [HttpPatch("{id}/status")]
         public IActionResult UpdateStatus(int id, [FromBody] UpdateStatusDto dto)
         {
-            _service.UpdateStatus(id, dto.Status);
-            return Ok(new { message = "Cập nhật trạng thái đơn hàng thành công." });
+            try
+            {
+                _service.UpdateStatus(id, dto.Status);
+                return Ok(new { message = "Cập nhật trạng thái đơn hàng thành công." });
+            }
+            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
     }
 

@@ -15,8 +15,16 @@ namespace MiniERP_API.Services
 
         public IEnumerable<CustomerDto> GetAll() => _mapper.Map<IEnumerable<CustomerDto>>(_repo.GetAll());
         public CustomerDto GetById(int id) => _mapper.Map<CustomerDto>(_repo.GetById(id));
-        public int Create(Customer customer) => _repo.Add(customer);
-        public void Update(Customer customer) => _repo.Update(customer);
+        public int Create(Customer customer)
+        {
+            if (string.IsNullOrWhiteSpace(customer.Name)) throw new System.Exception("Tên khách hàng không được để trống.");
+            return _repo.Add(customer);
+        }
+        public void Update(Customer customer)
+        {
+            if (string.IsNullOrWhiteSpace(customer.Name)) throw new System.Exception("Tên khách hàng không được để trống.");
+            _repo.Update(customer);
+        }
         public void Delete(int id) => _repo.Delete(id);
     }
 }

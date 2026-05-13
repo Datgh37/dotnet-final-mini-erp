@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using MiniERP_API.Models.Entities;
+using MiniERP_API.Helpers;
 using MiniERP_API.Repositories.Interfaces;
 
 namespace MiniERP_API.Repositories
@@ -16,7 +17,7 @@ namespace MiniERP_API.Repositories
         {
             var list = new List<User>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM Users WHERE IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetAllUsers, conn);
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(Map(r));
@@ -26,7 +27,7 @@ namespace MiniERP_API.Repositories
         public User GetById(int id)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM Users WHERE Id = @Id AND IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetUserById, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             conn.Open();
             using var r = cmd.ExecuteReader();
@@ -36,7 +37,7 @@ namespace MiniERP_API.Repositories
         public User GetByUserName(string userName)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("SELECT * FROM Users WHERE UserName = @Name AND IsDeleted = 0", conn);
+            var cmd = new SqlCommand(Queries.GetUserByUserName, conn);
             cmd.Parameters.AddWithValue("@Name", userName);
             conn.Open();
             using var r = cmd.ExecuteReader();
@@ -46,8 +47,7 @@ namespace MiniERP_API.Repositories
         public int Add(User u)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand(@"INSERT INTO Users (UserName, Email, PasswordHash, FullName) 
-                VALUES (@UserName, @Email, @Pass, @Name); SELECT CAST(SCOPE_IDENTITY() as int);", conn);
+            var cmd = new SqlCommand(Queries.InsertUser, conn);
             cmd.Parameters.AddWithValue("@UserName", u.UserName);
             cmd.Parameters.AddWithValue("@Email", (object)u.Email ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Pass", u.PasswordHash);
@@ -59,7 +59,7 @@ namespace MiniERP_API.Repositories
         public void Update(User u)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("UPDATE Users SET Email = @Email, FullName = @Name, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn);
+            var cmd = new SqlCommand(Queries.UpdateUser, conn);
             cmd.Parameters.AddWithValue("@Id", u.Id);
             cmd.Parameters.AddWithValue("@Email", (object)u.Email ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@Name", (object)u.FullName ?? DBNull.Value);
@@ -80,7 +80,7 @@ namespace MiniERP_API.Repositories
         public void ChangePassword(int id, string passwordHash)
         {
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand("UPDATE Users SET PasswordHash = @Hash, UpdatedAt = SYSDATETIMEOFFSET() WHERE Id = @Id", conn);
+            var cmd = new SqlCommand(Queries.ChangePassword, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             cmd.Parameters.AddWithValue("@Hash", passwordHash);
             conn.Open();

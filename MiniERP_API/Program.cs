@@ -87,6 +87,9 @@ namespace MiniERP_API
             }
 
             app.UseHttpsRedirection();
+
+            // Sử dụng Global Exception Handler để tự động bắt lỗi và trả về 400 Bad Request
+            app.UseMiddleware<ExceptionMiddleware>();
             
             // Kích hoạt CORS
             app.UseCors("AllowAll");
