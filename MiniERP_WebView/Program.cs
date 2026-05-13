@@ -25,9 +25,10 @@ namespace MiniERP_WebView
             app.UseAuthorization();
 
             app.MapStaticAssets();
+            app.UseStaticFiles();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                pattern: "{controller=Dashboard}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             app.Run();

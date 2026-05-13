@@ -79,7 +79,7 @@ namespace MiniERP_API.Repositories
             cmd.Parameters.AddWithValue("@OrderItems", jsonItems);
 
             conn.Open();
-            return (int)cmd.ExecuteScalar();
+                return (int)cmd.ExecuteScalar();
         }
 
         public void UpdateStatus(int id, string status)

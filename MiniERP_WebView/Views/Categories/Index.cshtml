@@ -1,0 +1,240 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">Product Categories</h2>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <button type="button" class="btn btn-primary" data-coreui-toggle="modal" data-coreui-target="#AddCateModal">
+            Add New Category
+        </button>
+
+        <!-- Add Modal -->
+        <div class="modal fade" id="AddCateModal" tabindex="-1" aria-labelledby="AddCateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="AddCateModalLabel">Add New Category</h5>
+                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="categoryForm">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Category Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" form="categoryForm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="EditCateModal" tabindex="-1" aria-labelledby="EditCateModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="EditCateModalLabel">Edit Category</h5>
+                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="editCategoryForm">
+                            <div class="mb-3">
+                                <label for="editId" class="form-label">Category ID</label>
+                                <input type="number" class="form-control" id="editId" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">Category Name</label>
+                                <input type="text" class="form-control" id="editName" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" form="editCategoryForm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th width="150">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoryTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let selectedCategoryId = null;
+
+    async function loadCategories() {
+        try {
+            const response = await fetch('https://localhost:7279/api/Categories');
+            const categories = await response.json();
+
+            let html = "";
+            categories.forEach(cat => {
+                html += `
+                    <tr>
+                        <td>${cat.id}</td>
+                        <td>${cat.name || ''}</td>
+                        <td>${cat.description || ''}</td>
+                        <td>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-warning btn-edit"
+                                data-id="${cat.id}"
+                                data-name="${cat.name || ''}"
+                                data-description="${cat.description || ''}"
+                                data-coreui-toggle="modal"
+                                data-coreui-target="#EditCateModal">
+                                Edit
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteCategory(${cat.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("categoryTable").innerHTML = html;
+        }
+        catch (error) {
+            console.log(error);
+            alert("Load categories failed");
+        }
+    }
+
+    document.addEventListener("click", function (e) {
+        const editButton = e.target.closest(".btn-edit");
+        if (!editButton) return;
+
+        selectedCategoryId = editButton.dataset.id;
+
+        document.getElementById("editId").value = editButton.dataset.id || "";
+        document.getElementById("editName").value = editButton.dataset.name || "";
+        document.getElementById("editDescription").value = editButton.dataset.description || "";
+    });
+
+    document.getElementById("categoryForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const category = {
+            name: document.getElementById("name").value,
+            description: document.getElementById("description").value
+        };
+
+        try {
+            const response = await fetch('https://localhost:7279/api/Categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(category)
+            });
+
+            if (response.ok) {
+                const modalEl = document.getElementById("AddCateModal");
+                const modal = coreui.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                await loadCategories();
+                alert('Category created successfully!');
+            } else {
+                alert('Failed to create category');
+            }
+        } catch (error) {
+            console.log(error);
+            alert('Error: ' + error.message);
+        }
+    });
+
+    document.getElementById("editCategoryForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        if (!selectedCategoryId) {
+            alert("No category selected");
+            return;
+        }
+
+        const category = {
+            id: parseInt(selectedCategoryId),
+            name: document.getElementById("editName").value,
+            description: document.getElementById("editDescription").value
+        };
+
+        try {
+            const response = await fetch(`https://localhost:7279/api/Categories/${selectedCategoryId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(category)
+            });
+
+            if (response.ok) {
+                const modalEl = document.getElementById("EditCateModal");
+                const modal = coreui.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                selectedCategoryId = null;
+                await loadCategories();
+                alert('Category updated successfully!');
+            } else {
+                alert('Failed to update category');
+            }
+        } catch (error) {
+            console.log(error);
+            alert('Error: ' + error.message);
+        }
+    });
+
+    async function deleteCategory(id) {
+        if (confirm('Are you sure?')) {
+            try {
+                const response = await fetch(`https://localhost:7279/api/Categories/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Category deleted successfully!');
+                    loadCategories();
+                } else {
+                    alert('Failed to delete category');
+                }
+            } catch (error) {
+                console.log(error);
+                alert('Error: ' + error.message);
+            }
+        }
+    }
+
+    loadCategories();
+</script>

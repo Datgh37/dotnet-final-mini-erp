@@ -14,6 +14,17 @@ namespace MiniERP_API
 
             // Add services to the container.
             builder.Services.AddControllers();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy =>
+                    {
+                        policy
+                            .AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+            });
 
             // Cấu hình CORS
             builder.Services.AddCors(options =>

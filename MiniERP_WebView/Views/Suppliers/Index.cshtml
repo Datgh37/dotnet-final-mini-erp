@@ -1,0 +1,290 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2 class="mb-4">Suppliers</h2>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <button type="button" class="btn btn-primary" data-coreui-toggle="modal" data-coreui-target="#AddSupplierModal">
+            Add New Supplier
+        </button>
+
+        <!-- Add Modal -->
+        <div class="modal fade" id="AddSupplierModal" tabindex="-1" aria-labelledby="AddSupplierModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="AddSupplierModalLabel">Add New Supplier</h5>
+                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="supplierForm">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Supplier Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactPerson" class="form-label">Contact Person Name</label>
+                                <input type="text" class="form-control" id="contactPerson" name="contactPerson" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="phone" name="phone" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="address" class="form-label">Address</label>
+                                <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" form="supplierForm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Modal -->
+        <div class="modal fade" id="EditSupplierModal" tabindex="-1" aria-labelledby="EditSupplierModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="EditSupplierModalLabel">Edit Supplier</h5>
+                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="editSupplierForm">
+                            <div class="mb-3">
+                                <label for="editId" class="form-label">Supplier ID</label>
+                                <input type="number" class="form-control" id="editId" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">Supplier Name</label>
+                                <input type="text" class="form-control" id="editName" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editContactPerson" class="form-label">Contact Person Name</label>
+                                <input type="text" class="form-control" id="editContactPerson" name="contactPerson" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="editEmail" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editPhone" class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="editPhone" name="phone" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editAddress" class="form-label">Address</label>
+                                <textarea class="form-control" id="editAddress" name="address" rows="3" required></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" form="editSupplierForm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Contact Person</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th width="150">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="supplierTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let selectedSupplierId = null;
+
+    async function loadSuppliers() {
+        try {
+            const response = await fetch('https://localhost:7279/api/Suppliers');
+            if (!response.ok) {
+                alert('Load suppliers failed');
+                return;
+            }
+
+            const suppliers = await response.json();
+            let html = "";
+
+            suppliers.forEach(s => {
+                html += `
+                    <tr>
+                        <td>${s.id ?? ''}</td>
+                        <td>${s.name || ''}</td>
+                        <td>${s.contactPerson || ''}</td>
+                        <td>${s.email || ''}</td>
+                        <td>${s.phone || ''}</td>
+                        <td>${s.address || ''}</td>
+                        <td>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-warning btn-edit"
+                                data-id="${s.id}"
+                                data-name="${s.name || ''}"
+                                data-contactperson="${s.contactPerson || ''}"
+                                data-email="${s.email || ''}"
+                                data-phone="${s.phone || ''}"
+                                data-address="${s.address || ''}"
+                                data-coreui-toggle="modal"
+                                data-coreui-target="#EditSupplierModal">
+                                Edit
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteSupplier(${s.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById("supplierTable").innerHTML = html;
+        }
+        catch (error) {
+            console.log(error);
+            alert("Load suppliers failed");
+        }
+    }
+
+    document.addEventListener("click", function (e) {
+        const editButton = e.target.closest(".btn-edit");
+        if (!editButton) return;
+
+        selectedSupplierId = editButton.dataset.id;
+
+        document.getElementById("editId").value = editButton.dataset.id || "";
+        document.getElementById("editName").value = editButton.dataset.name || "";
+        document.getElementById("editContactPerson").value = editButton.dataset.contactperson || "";
+        document.getElementById("editEmail").value = editButton.dataset.email || "";
+        document.getElementById("editPhone").value = editButton.dataset.phone || "";
+        document.getElementById("editAddress").value = editButton.dataset.address || "";
+    });
+
+    document.getElementById("supplierForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const supplier = {
+            name: document.getElementById("name").value,
+            contactPerson: document.getElementById("contactPerson").value,
+            email: document.getElementById("email").value,
+            phone: document.getElementById("phone").value,
+            address: document.getElementById("address").value
+        };
+
+        try {
+            const response = await fetch('https://localhost:7279/api/Suppliers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(supplier)
+            });
+
+            if (response.ok) {
+                const modalEl = document.getElementById("AddSupplierModal");
+                const modal = coreui.Modal.getInstance(modalEl);
+                if (modal) {
+                    modal.hide();
+                }
+
+                document.getElementById("supplierForm").reset();
+                await loadSuppliers();
+                alert('Supplier created successfully!');
+            } else {
+                const error = await response.text();
+                alert('Failed to create supplier: ' + (error || response.statusText));
+            }
+        } catch (error) {
+            console.log(error);
+            alert('Error: ' + error.message);
+        }
+    });
+
+    document.getElementById("editSupplierForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        if (!selectedSupplierId) {
+            alert('No supplier selected');
+            return;
+        }
+
+        const supplier = {
+            id: parseInt(selectedSupplierId),
+            name: document.getElementById("editName").value,
+            contactPerson: document.getElementById("editContactPerson").value,
+            email: document.getElementById("editEmail").value,
+            phone: document.getElementById("editPhone").value,
+            address: document.getElementById("editAddress").value
+        };
+
+        try {
+            const response = await fetch(`https://localhost:7279/api/Suppliers/${selectedSupplierId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(supplier)
+            });
+
+            if (response.ok) {
+                const modalEl = document.getElementById("EditSupplierModal");
+                const modal = coreui.Modal.getInstance(modalEl);
+                if (modal) {
+                    modal.hide();
+                }
+
+                selectedSupplierId = null;
+                await loadSuppliers();
+                alert('Supplier updated successfully!');
+            } else {
+                const error = await response.text();
+                alert('Failed to update supplier: ' + (error || response.statusText));
+            }
+        } catch (error) {
+            console.log(error);
+            alert('Error: ' + error.message);
+        }
+    });
+
+    async function deleteSupplier(id) {
+        if (!confirm('Are you sure?')) return;
+
+        try {
+            const response = await fetch(`https://localhost:7279/api/Suppliers/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('Supplier deleted successfully!');
+                await loadSuppliers();
+            } else {
+                const error = await response.text();
+                alert('Failed to delete supplier: ' + (error || response.statusText));
+            }
+        } catch (error) {
+            console.log(error);
+            alert('Error: ' + error.message);
+        }
+    }
+
+    loadSuppliers();
+</script>

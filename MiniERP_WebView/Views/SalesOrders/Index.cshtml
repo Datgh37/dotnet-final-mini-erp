@@ -1,0 +1,339 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">Sales Orders Management</h2>
+
+<!-- Action Buttons -->
+<div class="card mb-3">
+    <div class="card-body">
+        <button type="button" class="btn btn-primary" data-coreui-toggle="modal" data-coreui-target="#orderModal">
+            <i class="fas fa-plus"></i> Create New Order
+        </button>
+        <!-- Create/Edit Modal -->
+        <div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="orderModalLabel">Create Sales Order</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="orderForm">
+                            <input type="hidden" id="orderId" name="id">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="customerId" class="form-label">Customer ID *</label>
+                                    <input type="number" class="form-control" id="customerId" name="customerId" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="orderDate" class="form-label">Order Date *</label>
+                                    <input type="date" class="form-control" id="orderDate" name="orderDate" required>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="paymentMethod" class="form-label">Payment Method</label>
+                                    <input type="text" class="form-control" id="paymentMethod" name="paymentMethod" placeholder="e.g., Cash, Credit Card">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="paymentStatus" class="form-label">Payment Status</label>
+                                    <input type="text" class="form-control" id="paymentStatus" name="paymentStatus" placeholder="e.g., Paid, Unpaid">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="shippingAddress" class="form-label">Shipping Address</label>
+                                <textarea class="form-control" id="shippingAddress" name="shippingAddress" rows="2"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="saveSalesOrder()">Save Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Status Modal -->
+        <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="statusModalLabel">Update Order Status</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="statusForm">
+                            <input type="hidden" id="statusOrderId">
+                            <div class="mb-3">
+                                <label for="newStatus" class="form-label">New Status</label>
+                                <select id="newStatus" class="form-select" required>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="submitUpdateStatus()">Update Status</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODALS END -->
+    </div>
+</div>
+
+<!-- Sales Orders Table -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Sales Orders List</h5>
+        <div id="loadingSpinner" class="text-center d-none">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="salesOrdersTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Order Number</th>
+                        <th>Customer</th>
+                        <th>Order Date</th>
+                        <th>Status</th>
+                        <th>Total Amount</th>
+                        <th width="200">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="salesOrderTableBody">
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODALS START: Moved to the root level for correct behavior -->
+
+
+
+
+<script>
+    const API_BASE_URL = 'https://localhost:7279/api/sales-orders';
+    let orderModal;
+    let statusModal;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        orderModal = new bootstrap.Modal(document.getElementById('orderModal'));
+        statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+        loadSalesOrders();
+    });
+
+    function getStatusBadgeClass(status) {
+        switch ((status || '').toLowerCase()) {
+            case 'pending': return 'bg-warning text-dark';
+            case 'confirmed': return 'bg-primary';
+            case 'shipped': return 'bg-info text-dark';
+            case 'delivered': return 'bg-success';
+            case 'cancelled': return 'bg-danger';
+            default: return 'bg-secondary';
+        }
+    }
+
+    async function loadSalesOrders() {
+        showLoading(true);
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const orders = await response.json();
+            renderTable(orders);
+        } catch (error) {
+            console.error("Load sales orders failed:", error);
+            showError("Failed to load sales orders. Check API connection and console for details.");
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function renderTable(orders) {
+        const tableBody = document.getElementById("salesOrderTableBody");
+        if (!orders || orders.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No sales orders found.</td></tr>';
+            return;
+        }
+
+        tableBody.innerHTML = orders.map(order => {
+            const orderDate = new Date(order.orderDate).toLocaleDateString('en-CA'); // YYYY-MM-DD format
+            const statusClass = getStatusBadgeClass(order.status);
+            const totalAmount = (order.totalAmount || 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+
+            return `
+                <tr>
+                    <td>${order.id}</td>
+                    <td><strong>${order.orderNumber}</strong></td>
+                    <td>${order.customerId}</td>
+                    <td>${orderDate}</td>
+                    <td><span class="badge ${statusClass}">${order.status || 'N/A'}</span></td>
+                    <td>${totalAmount}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="openUpdateStatusModal(${order.id}, '${order.status}')">Status</button>
+                        <button class="btn btn-sm btn-warning" onclick="openEditModal(${order.id})">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSalesOrder(${order.id})">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function openCreateModal() {
+        document.getElementById("orderForm").reset();
+        document.getElementById("orderId").value = '';
+        document.getElementById("orderModalLabel").textContent = "Create Sales Order";
+        // Set order date to today by default
+        document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
+        orderModal.show();
+    }
+
+    async function openEditModal(id) {
+        showLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}`);
+            if (!response.ok) throw new Error('Failed to fetch order details.');
+            const order = await response.json();
+
+            document.getElementById("orderForm").reset();
+            document.getElementById("orderId").value = order.id;
+            document.getElementById("customerId").value = order.customerId;
+            document.getElementById("orderDate").value = new Date(order.orderDate).toISOString().split('T')[0];
+            document.getElementById("paymentMethod").value = order.paymentMethod;
+            document.getElementById("paymentStatus").value = order.paymentStatus;
+            document.getElementById("shippingAddress").value = order.shippingAddress;
+            document.getElementById("notes").value = order.notes;
+            
+            document.getElementById("orderModalLabel").textContent = `Edit Sales Order #${order.orderNumber}`;
+            orderModal.show();
+        } catch (error) {
+            showError(error.message);
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    async function saveSalesOrder() {
+        const form = document.getElementById("orderForm");
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const orderId = document.getElementById("orderId").value;
+        const isCreating = !orderId;
+        const url = isCreating ? API_BASE_URL : `${API_BASE_URL}/${orderId}`;
+        const method = isCreating ? 'POST' : 'PUT';
+
+        const orderData = {
+            customerId: parseInt(document.getElementById("customerId").value),
+            orderDate: document.getElementById("orderDate").value,
+            paymentMethod: document.getElementById("paymentMethod").value,
+            paymentStatus: document.getElementById("paymentStatus").value,
+            shippingAddress: document.getElementById("shippingAddress").value,
+            notes: document.getElementById("notes").value
+        };
+        
+        if (!isCreating) {
+            orderData.id = parseInt(orderId);
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+
+            if (!response.ok) {
+                 const errorData = await response.json();
+                 const errorMessages = Object.values(errorData.errors).flat().join('\n');
+                 throw new Error(errorMessages);
+            }
+            
+            showSuccess(`Order ${isCreating ? 'created' : 'updated'} successfully!`);
+            orderModal.hide();
+            await loadSalesOrders();
+        } catch (error) {
+            showError(`Failed to save order: ${error.message}`);
+        }
+    }
+
+    function openUpdateStatusModal(id, currentStatus) {
+        document.getElementById('statusOrderId').value = id;
+        document.getElementById('newStatus').value = currentStatus || 'Pending';
+        statusModal.show();
+    }
+
+    async function submitUpdateStatus() {
+        const id = document.getElementById('statusOrderId').value;
+        const status = document.getElementById('newStatus').value;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: status })
+            });
+
+            if (!response.ok) throw new Error('Server responded with an error.');
+            
+            showSuccess('Status updated successfully!');
+            statusModal.hide();
+            await loadSalesOrders();
+        } catch (error) {
+            showError(`Failed to update status: ${error.message}`);
+        }
+    }
+
+    async function deleteSalesOrder(id) {
+        if (!confirm(`Are you sure you want to delete Sales Order #${id}? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Failed to delete the order.');
+            
+            showSuccess('Order deleted successfully!');
+            await loadSalesOrders();
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Helper Functions
+    function showLoading(isLoading) {
+        document.getElementById('loadingSpinner').classList.toggle('d-none', !isLoading);
+    }
+    function showSuccess(message) { alert('✅ ' + message); }
+    function showError(message) { alert('❌ ' + message); }
+
+</script>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+    .badge {
+        font-size: 0.9em;
+        padding: 0.5em 0.7em;
+    }
+</style>
