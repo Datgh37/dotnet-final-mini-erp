@@ -10,19 +10,23 @@ namespace MiniERP_API.Helpers
         {
             // Product
             CreateMap<Product, ProductDto>();
+            CreateMap<ProductCreateUpdateDto, Product>();
 
             // Supplier
             CreateMap<Supplier, SupplierDto>();
+            CreateMap<SupplierCreateUpdateDto, Supplier>();
 
             // Brand
             CreateMap<Brand, BrandDto>();
-            CreateMap<BrandDto, Brand>();
+            CreateMap<BrandCreateUpdateDto, Brand>();
 
             // Category
             CreateMap<ProductCategory, CategoryDto>();
+            CreateMap<CategoryCreateUpdateDto, ProductCategory>();
 
             // Customer
             CreateMap<Customer, CustomerDto>();
+            CreateMap<CustomerCreateUpdateDto, Customer>();
 
             // Role
             CreateMap<Role, RoleDto>();

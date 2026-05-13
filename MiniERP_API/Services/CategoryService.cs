@@ -15,8 +15,21 @@ namespace MiniERP_API.Services
 
         public IEnumerable<CategoryDto> GetAll() => _mapper.Map<IEnumerable<CategoryDto>>(_repo.GetAll());
         public CategoryDto GetById(int id) => _mapper.Map<CategoryDto>(_repo.GetById(id));
-        public int Create(ProductCategory category) => _repo.Add(category);
-        public void Update(ProductCategory category) => _repo.Update(category);
+        public int Create(CategoryCreateUpdateDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên danh mục không được để trống.");
+            var category = _mapper.Map<ProductCategory>(dto);
+            return _repo.Add(category);
+        }
+        public void Update(int id, CategoryCreateUpdateDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên danh mục không được để trống.");
+            var existing = _repo.GetById(id);
+            if (existing == null) throw new System.Exception("Danh mục không tồn tại.");
+            _mapper.Map(dto, existing);
+            existing.Id = id;
+            _repo.Update(existing);
+        }
         public void Delete(int id) => _repo.Delete(id);
     }
 }

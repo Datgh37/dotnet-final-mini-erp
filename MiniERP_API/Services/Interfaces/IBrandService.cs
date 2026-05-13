@@ -8,8 +8,8 @@ namespace MiniERP_API.Services.Interfaces
     {
         IEnumerable<BrandDto> GetAll();
         BrandDto GetById(int id);
-        int Create(Brand brand);
-        void Update(Brand brand);
+        int Create(BrandCreateUpdateDto dto);
+        void Update(int id, BrandCreateUpdateDto dto);
         void Delete(int id);
     }
 }

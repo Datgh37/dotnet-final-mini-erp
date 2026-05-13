@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MiniERP_API.Models.DTOs;
 using MiniERP_API.Models.Entities;
 using MiniERP_API.Services.Interfaces;
 
@@ -22,17 +23,16 @@ namespace MiniERP_API.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create(Brand brand)
+        public IActionResult Create(BrandCreateUpdateDto dto)
         {
-            var id = _service.Create(brand);
-            return CreatedAtAction(nameof(GetById), new { id }, brand);
+            var id = _service.Create(dto);
+            return CreatedAtAction(nameof(GetById), new { id }, dto);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Update(int id, Brand brand)
+        public IActionResult Update(int id, BrandCreateUpdateDto dto)
         {
-            if (id != brand.Id) return BadRequest();
-            _service.Update(brand);
+            _service.Update(id, dto);
             return NoContent();
         }
 

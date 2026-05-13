@@ -15,15 +15,20 @@ namespace MiniERP_API.Services
 
         public IEnumerable<BrandDto> GetAll() => _mapper.Map<IEnumerable<BrandDto>>(_repo.GetAll());
         public BrandDto GetById(int id) => _mapper.Map<BrandDto>(_repo.GetById(id));
-        public int Create(Brand brand)
+        public int Create(BrandCreateUpdateDto dto)
         {
-            if (string.IsNullOrWhiteSpace(brand.Name)) throw new System.Exception("Tên nhãn hàng không được để trống.");
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhãn hàng không được để trống.");
+            var brand = _mapper.Map<Brand>(dto);
             return _repo.Add(brand);
         }
-        public void Update(Brand brand)
+        public void Update(int id, BrandCreateUpdateDto dto)
         {
-            if (string.IsNullOrWhiteSpace(brand.Name)) throw new System.Exception("Tên nhãn hàng không được để trống.");
-            _repo.Update(brand);
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhãn hàng không được để trống.");
+            var existing = _repo.GetById(id);
+            if (existing == null) throw new System.Exception("Nhãn hàng không tồn tại.");
+            _mapper.Map(dto, existing);
+            existing.Id = id;
+            _repo.Update(existing);
         }
         public void Delete(int id) => _repo.Delete(id);
     }

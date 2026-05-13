@@ -1,0 +1,1362 @@
+﻿
+
+
+TRƯỜNG ĐẠI HỌC CÔNG NGHỆ ĐỒNG NAI
+KHOA CÔNG NGHỆ THÔNG TIN
+
+
+
+BÁO CÁO ĐỀ TÀI
+HỆ THỐNG QUẢN LÝ BÁN HÀNG (MINI ERP)
+
+
+Môn học: Công Nghệ .NET
+Công nghệ: ASP.NET Core Web API + ADO.NET
+
+
+
+
+Năm 2026
+
+
+MỤC LỤC
+Chương 1: Tổng Quan & Kiến Trúc	3
+1.1 Giới Thiệu Đề Tài	3
+1.2 Kiến Trúc Hệ Thống	4
+1.3 Cấu Trúc Thư Mục Dự Án	5
+1.4 Luồng Xử Lý Request	6
+Chương 2: Thiết Kế Database	7
+2.1 Nguyên Tắc Soft Delete	7
+2.2 ERD	7
+2.3 Data Dictionary	8
+2.4 Script Tạo Database	13
+2.5 Stored Procedures	16
+Chương 3: Thiết Kế API (Detail Design)	18
+3.1 Danh Sách API Tổng Hợp	18
+3.2 Module Products	19
+3.3 Module Customers	23
+3.4 Module Orders	24
+3.5 Module Inventory	27
+3.6 Module Reports	30
+3.7 Quy Ước Response Chung	32
+Chương 4: Khởi Tạo Dự Án & Cấu Hình	34
+Chương 5: Models & Data Access Layer	37
+Chương 6: Business Logic Layer	45
+Chương 7: API Controllers & DTOs	50
+Chương 8: Kiểm Thử & Tổng Kết	58
+
+
+CHƯƠNG 1: TỔNG QUAN & KIẾN TRÚC
+1. Phần 1: Tổng Quan & Kiến Trúc
+1.1. Giới Thiệu Đề Tài
+Ứng dụng: Mini ERP là một hệ thống quản lý tài nguyên doanh nghiệp (ERP) phiên bản tinh gọn cho cửa hàng nhỏ.
+Hệ thống bao gồm: MiniERP_API (Web API backend xử lý logic nghiệp vụ); MiniERP_WebView (Frontend Web MVC cho giao diện người dùng)
+Công nghệ cốt lõi:
+• Backend (MiniERP_API)
+o Runtime: .NET 10.0
+o Framework: ASP.NET Core Web API
+o Database: SQL Server
+o Data Access: ADO.NET (Microsoft.Data.SqlClient)
+o Mapping: AutoMapper (DTO mapping)
+o API Documentation: NSwag (Swagger UI)
+o Architecture Pattern: Repository & Service Pattern
+• Frontend (MiniERP_WebView)
+o Framework: ASP.NET Core MVC
+o Runtime: .NET 10.0
+o Styling: Bootstrap 5 + HTML5
+Link Source Code: https://github.com/Datgh37/dotnet-final-mini-erp
+Các nghiệp vụ chính:
+STTNghiệp vụMô tả1Quản lý Người dùng & Phân quyềnQuản lý tài khoản người dùng, băm mật khẩu và phân quyền vai trò (Roles) cho nhân viên.2Quản lý sản phẩmCRUD thông tin sản phẩm, danh mục hàng hóa, thương hiệu và đơn vị tính.3Quản lý đối tácCRUD thông tin chi tiết khách hàng và nhà cung cấp.4Nhập – Xuất khoThực hiện phiếu nhập kho (khi mua), phiếu xuất kho (khi bán), lưu nhật ký biến động và theo dõi số lượng tồn kho thực tế.5Quản lý mua hàngTạo đơn đặt hàng từ nhà cung cấp (Purchase Order), theo dõi ngày dự kiến và ngày nhận hàng thực tế.6Quản lý bán hàngTạo đơn hàng bán (Sales Order), chi tiết đơn hàng, quản lý phương thức thanh toán và địa chỉ giao hàng.7Tính toán doanh thuTự động tính tổng tiền đơn hàng dựa trên số lượng, đơn giá và chiết khấu.8Thống kê báo cáoTổng hợp và báo cáo doanh thu theo các khoảng thời gian (ngày, tháng, năm).9Bảo toàn dữ liệuXóa mềm (Soft Delete) tất cả dữ liệu (không xóa vật lý)1.2. Kiến Trúc Hệ Thống (3-Layer Architecture)
+
+Giải thích:
+• Presentation Layer: Nhận yêu cầu từ người dùng thông qua API, kiểm tra dữ liệu đầu vào và trả về JSON response.
+• Business Logic Layer: Chứa các quy trình nghiệp vụ cốt lõi, thực hiện tính toán và điều phối các hành động giữa tầng API và tầng dữ liệu.
+• Data Access Layer: Thực hiện kết nối và tương tác trực tiếp với cơ sở dữ liệu bằng ADO.NET thông qua các mẫu Repository.
+• Database Layer: Lưu trữ dữ liệu vật lý và xử lý các nghiệp vụ phức tạp trực tiếp bên trong SQL Server bằng Stored Procedures.
+1.3. Cấu Trúc Thư Mục Dự Án
+├── MiniERP_API/                        # Backend API (ASP.NET Core Web API)
+│   ├── Controllers/                    # Xử lý Request
+│   │   ├── AuthController.cs
+│   │   ├── ProductsController.cs
+│   │   ├── SalesOrdersController.cs
+│   │   ├── InventoryController.cs
+│   │   └── ... (Các Controller khác)
+│   ├── Models/
+│   │   ├── Entities/                   # Lớp đại diện Database
+│   │   │   ├── Product.cs
+│   │   │   ├── SalesOrder.cs
+│   │   │   └── ...
+│   │   └── DTOs/                       # Dữ liệu truyền tải
+│   │       ├── ProductDto.cs
+│   │       ├── SalesOrderDto.cs
+│   │       └── ...
+│   ├── Services/                       # Tầng Logic nghiệp vụ
+│   │   ├── Interfaces/                 # IProductService.cs, ...
+│   │   └── (Implementations)           # ProductService.cs, ...
+│   ├── Repositories/                   # Tầng kết nối Database
+│   │   ├── Interfaces/                 # IProductRepository.cs, ...
+│   │   └── (Implementations)           # ProductRepository.cs, ...
+│   ├── Helpers/                        # PasswordHasher.cs, JwtHelper.cs
+│   ├── Program.cs                      # Cấu hình hệ thống
+│   ├── MiniERP-API-Schema.sql          # Script tạo Database
+│   └── MiniERP-SeedData.sql            # Script dữ liệu mẫu
+
+
+1.4. Luồng Xử Lý Request
+Client (Postman/Frontend)
+    │
+    ▼
+[HTTP Request] → Controller (Validate + Map DTO)
+                      │
+                      ▼
+                 Service (Business Logic)
+                      │
+                      ▼
+                 Repository (ADO.NET → SQL Server)
+                      │
+                      ▼
+                 [SQL Query Execute]
+                      │
+                      ▼
+                 Repository (Map DataReader → Model)
+                      │
+                      ▼
+                 Service (Process + Return)
+                      │
+                      ▼
+                 Controller (Map → Response DTO)
+                      │
+                      ▼
+              [HTTP Response JSON]
+
+
+CHƯƠNG 2: THIẾT KẾ DATABASE
+2.1. Nguyên Tắc Soft Delete
+Tất cả các bảng đều có cột IsDeleted (BIT, default 0).
+Khi "xóa", chỉ UPDATE IsDeleted = 1, KHÔNG dùng DELETE.
+Tất cả câu SELECT đều thêm WHERE IsDeleted = 0.
+2.2. ERD (Entity Relationship Diagram)
+
+*Note: Vì kích cỡ quá lớn nên chúng em để diagram chi tiết ở đây ạ: https://dbdiagram.io/d/MiniERP-6a00967a7a923b94726cb444
+2.3. Data Dictionary – Mô Tả Chi Tiết Các Bảng
+2.3.1. Bảng Roles (Vai trò)
+Mô tả: Lưu trữ thông tin các vai trò hệ thống dùng để phân quyền.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăng.NameNVARCHAR(100)KhôngTên vai trò.CreateAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạo.UpdateAtDATETIMEOFFSET(7)cóNULLNgày cập nhật.IsDeleteBITKhông0Cờ xóa mềm.UpdatedAtDATETIMECóNULLNgày cập nhậtKhóa ngoại: Không 
+Ràng buộc: Name phải UNIQUE
+2.3.2. Bảng Users (Người dùng)
+Mô tả: Lưu trữ thông tin của người dùng trong hệ thống (tài khoản đăng nhập).
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăngUserNameNVARCHAR(100)KhôngTên đăng nhập, UNIQUE.UserEmailVARCHAR(256)CóĐịa chỉ Email.PasswordHashNVARCHAR(MAX)CóMật khẩu đã được mã hóa.FullNameNVARCHAR(200)CóHọ và Tên.IsDeletedBITKhông0Cờ xóa mềm.CreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạo.UpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhật.Khóa ngoại: Không 
+Ràng buộc: UserName phải UNIQUE
+2.3.3. Bảng Customers (Khách hàng)
+Mô tả: Lưu trữ thông tin khách hàng mua hàng tại cửa hàng.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăngUserIdINTCóFK -> Users.Id (Liên kết tài khoản)NameNVARCHAR(200)KhôngTên khách hàngEmailVARCHAR(256)CóĐịa chỉ emailAddressNVARCHAR(500)CóĐịa chỉPhoneVARCHAR(50)CóSố điện thoạiIsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoUpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhậtKhóa ngoại: FK_Cust_User (UserId -> Users.Id) 
+Quan hệ: 1 Customer → N Orders
+2.3.4. Bảng Brands (Thương hiệu/Nhãn hàng)
+Mô tả: Lưu trữ thông tin các thương hiệu sản phẩm.
+CộtKiểu dữ liệuNullDefaultMô tảIdINTKhôngIDENTITY(1,1)Khóa chính, tự tăngNameNVARCHAR(200)KhôngTên nhãn hàngDescriptionNVARCHAR(500)CóNULLMô tả về nhãn hàngIsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoIdINTKhôngIDENTITY(1,1)Khóa chính, tự tăngKhóa ngoại: Không 
+Ràng buộc: Khóa chính (Id), Name phải UNIQUE
+2.3.5. Bảng ProductCategories (Danh mục sản phẩm)
+Mô tả: Lưu trữ thông tin các danh mục sản phẩm (hỗ trợ phân cấp đa cấp).
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăngNameNVARCHAR(200)KhôngTên danh mụcParentCategoryIdINTCóNULLMã danh mục chaIsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoUpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhậtKhóa ngoại: FK_PC_Parent (ParentCategoryId tham chiếu ProductCategories.Id).
+Ràng buộc: Khóa chính (Id).
+Quan hệ: 1 Parent Category → N Child Categories (Self-reference)
+2.3.6. Bảng Suppliers (Nhà cung cấp)
+Mô tả: Lưu trữ thông tin đối tác cung cấp nguồn hàng.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăngNameNVARCHAR(200)KhôngTên nhà cung cấpContactPersonNVARCHAR(200)CóNULLNgười đại diện liên hệPhoneVARCHAR(10)CóNULLSố điện thoạiEmailVARCHAR(256)CóNULLĐịa chỉ emailAddressNVARCHAR(500)Có NULLĐịa chỉ chi tiếtIsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoUpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhậtKhóa ngoại: Không 
+Ràng buộc: Khóa chính (Id)
+2.3.7. Bảng Products (Sản phẩm)
+Mô tả: Thông tin chi tiết về từng mặt hàng.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăngCategoryIdINTCóNULLMã danh mụcBrandIdINTCóNULLMã nhãn hàngSKUNVARCHAR(100)KhôngMã sản phẩm (SKU)NameNVARCHAR(300)KhôngTên sản phẩmDescriptionNVARCHAR(MAX)CóNULLMô tả sản phẩmCostPriceDECIMAL(18,2)Không0Vốn nhập hàngRetailPriceDECIMAL(18,2)Không0Giá bán lẻ đề xuấtStockQuantityINTKhông0Số lượng tồn khoImageURLNVARCHAR(500)CóNULLLink hình ảnh đại diệnIsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoUpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhậtKhóa ngoại: FK_Product_Category (CategoryId tham chiếu ProductCategories.Id), FK_Product_Brand (BrandId tham chiếu Brands.Id). 
+Ràng buộc: Khóa chính (Id), SKU phải UNIQUE.
+Quan hệ: 1 Category → N Products | 1 Brand → N Products
+2.3.8. Bảng PurchaseOrders (Đơn nhập hàng)
+Mô tả Lưu thông tin tổng quan của một lần nhập hàng từ Nhà cung cấp.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăngPONumberNVARCHAR(50)KhôngMã đơn nhậpSupplierIdINTCóNULLMã nhà cung cấpOrderDateDATECóNULLNgày lập đơnExpectedDateDATECóNULLNgày nhận hàng dự kiếnReceivedDateDATECóNULLNgày nhận hàng tyhuwjc tếStatusNVARCHAR(500)CóNULLTrạng thái (PENDING, RECEIVED, CANCELLED).TotalAmountDECIMAL(18,2)Có0Tổng tiền thanh toánNotesNVARCHARCóNULLGhi chúCreateByINTCóNULLNgười lập phiếuIsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoUpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhậtKhóa ngoại: FK_PO_Supplier (SupplierId tham chiếu Suppliers.Id), FK_PO_User (CreatedBy tham chiếu Users.Id).
+Ràng buộc: Khóa chính (Id), PONumber phải UNIQUE.
+Quan hệ: 1 Supplier → N PurchaseOrders | 1 User (Staff) → N PurchaseOrders
+2.3.9. Bảng PurchaseOrderItems (Chi tiết đơn nhập hàng)
+Mô tả: Các mặt hàng cụ thể được nhập trong đơn hàng.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăng.PurchaseOrderIdINTKhôngMã đơn nhập.ProductIdINTKhôngMã sản phẩm.QuantityINTKhôngSố lượng nhập.UnitPriceDECIMAL(18,2)KhôngGiá nhập (Đơn giá/sp).Khóa ngoại: FK_POI_Order (PurchaseOrderId tham chiếu PurchaseOrders.Id ON DELETE CASCADE), FK_POI_Product (ProductId tham chiếu Products.Id). 
+Ràng buộc: Khóa chính (Id).
+Quan hệ: 1 PurchaseOrder → N Items | 1 Product → N Items
+2.3.10. Bảng UserRoles (Chi tiết phân quyền)
+Mô tả: Bảng trung gian lưu trữ thông tin phân quyền cho người dùng.
+CộtKiểu dữ liệuNullDefaultMô tảUserIdINT KhôngMã người dùngRoleIdINTKhôngMã vai trò.Khóa ngoại: FK_UserRoles_User (UserId tham chiếu Users.Id ON DELETE CASCADE), FK_UserRoles_Role (RoleId tham chiếu Roles.Id ON DELETE CASCADE). 
+Ràng buộc: Khóa chính (UserId, RoleId).
+Quan hệ: 1 User → N UserRoles | 1 Role → N UserRoles
+2.3.11. Bảng SalesOrders (Đơn bán hàng)
+Mô tả: Lưu thông tin tổng quan của một đơn hàng bán ra.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăngOrderNumberNVARCHAR(50)KhôngMã đơn hàngCustomerIdINTCóNULLMã khách hàngOrderDateDATECóNULLNgày bánStatusNVARCHAR(50)CóNULLTrạng thái (NEW, SHIPPING, COMPLETED, CANCELLED).PaymentMethodNVARCHAR(50)CóNULLPhương thức thanh toánPaymentStatusNVARCHAR(50)CóNULLTrạng thái thanh toánTotalAmountDECIMAL(18,2)Có0Tổng tiền đơn hàngShippingAddressNVARCHAR(500)CóNULLĐịa chỉ giao hàngNotesNVARCHAR(MAX)CóNULLGhi chúCreateByINTCóNULLNgười lập đơnIsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoUpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhậtKhóa ngoại: FK_SO_Customer (CustomerId tham chiếu Customers.Id), FK_SO_User (CreatedBy tham chiếu Users.Id).
+Ràng buộc: Khóa chính (Id), OrderNumber phải UNIQUE.
+Quan hệ: 1 Customer → N SalesOrders | 1 User (Staff) → N SalesOrders
+2.3.12. Bảng SalesOrderItems (Chi tiết đơn bán hàng)
+Mô tả: Các mặt hàng cụ thể được xuất bán trong đơn.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăng.SalesOrderIdINTKhôngMã đơn bán.ProductIdINTKhôngMã sản phẩm.QuantityINTKhôngSố lượng bán.UnitPriceDECIMAL(18,2)KhôngGiá bán (Đơn giá/sp).DiscountDECIMAL(18,x)Có0Số tiền giảm giá.Khóa ngoại: FK_SOI_Order (SalesOrderId tham chiếu SalesOrders.Id ON DELETE CASCADE), FK_SOI_Product (ProductId tham chiếu Products.Id) 
+Ràng buộc: Khóa chính (Id).
+Quan hệ: 1 SalesOrder → N Items | 1 Product → N Items
+2.3.13. Bảng StockMovements (Lịch sử kho)
+Mô tả: Ghi log chi tiết mọi hoạt động làm thay đổi số lượng tồn kho.
+CộtKiểu dữ liệuNullDefaultMô tảIdINT KhôngIDENTITY(1,1)Khóa chính, tự tăng.ProductIdINTKhôngMã sản phẩm.MovementTypeNVARCHAR(50)KhôngLoại biến động (IN, OUT, ADJUSTMENT, RETURN).QuantityINTKhôngSố lượng thay đổi.ReferenceNVARCHAR(200)CóNULLMã tham chiếu (Mã PO, SO...).CreateByINTCó NULLNgười thực hiện.IsDeletedBITKhông0Cờ xóa mềmCreatedAtDATETIMEOFFSET(7)KhôngSysutcdatetime()Ngày tạoUpdatedAtDATETIMEOFFSET(7)CóNULLNgày cập nhậtKhóa ngoại: FK_SM_Product (ProductId tham chiếu Products.Id), FK_SM_User (CreatedBy tham chiếu Users.Id).
+Ràng buộc: Khóa chính (Id).
+Quan hệ: 1 Product → N StockMovements | 1 User (Staff) → N StockMovements
+2.4. Stored Procedures Quan Trọng
+2.4.1. Tạo đơn bán hàng & Trừ kho (sp_CreateSalesOrder)
+• Chức năng: Dùng để xử lý trọn gói một đơn hàng bán ra.
+• Các bước thực hiện:
+o Tạo bản ghi mới trong bảng SalesOrders.
+o Đọc danh sách sản phẩm từ định dạng XML và chèn vào bảng SalesOrderItems.
+o Kiểm tra tồn kho từng sản phẩm; nếu thiếu sẽ báo lỗi và hủy toàn bộ giao dịch.
+o Tự động trừ số lượng trong bảng Products.
+o Ghi nhật ký xuất kho vào bảng StockMovements.
+o Tự động tính toán lại tổng tiền của đơn hàng.
+2.4.2. Xác nhận nhập hàng (sp_ReceivePurchaseOrder)
+• Chức năng: Dùng khi hàng từ nhà cung cấp về tới kho.
+• Các bước thực hiện:
+o Cập nhật trạng thái đơn mua hàng (PurchaseOrders) thành 'RECEIVED'.
+o Cập nhật ngày nhận hàng và người nhận.
+o Tự động cộng thêm số lượng tồn kho vào bảng Products.
+o Ghi nhật ký nhập kho vào bảng StockMovements.
+2.4.3. Báo cáo doanh thu (sp_GetRevenueReport)
+• Chức năng: Kết xuất dữ liệu thống kê kinh doanh trong một khoảng thời gian.
+• Các bước thực hiện:
+o Lọc các đơn hàng có trạng thái 'COMPLETED' và không bị xóa.
+o Nhóm dữ liệu theo ngày.
+o Tính tổng số lượng đơn hàng và tổng doanh thu của từng ngày trong khoảng từ ngày FromDate đến ToDate.
+2.4.4. Xóa mềm tổng quá (sp_SoftDelete)
+• Chức năng: Một công cụ dùng chung để xóa dữ liệu an toàn cho tất cả các bảng.
+• Các bước thực hiện:
+o Nhận tên bảng và ID cần xóa làm tham số.
+o Thay vì xóa vĩnh viễn, SP này cập nhật cột IsDeleted = 1 và cập nhật thời gian UpdatedAt.
+o Giúp bảo toàn dữ liệu để phục vụ việc đối soát và báo cáo lịch sử.
+CHƯƠNG 3: THIẾT KẾ API (DETAIL DESIGN)
+3.1. Danh Sách API Tổng Hợp
+STTMethodEndpointMô tảModule1POST/api/auth/loginĐăng nhập hệ thống, xác thực bằng UserName & Password, trả về JWT Token.Auth2POST/api/auth/registerĐăng ký tài khoản mới, mặc định gán Role "Customer".Auth3POST/api/auth/refresh-tokenLàm mới Access Token khi Token cũ hết hạn.Auth4GET/api/usersLấy danh sách tất cả người dùng (chỉ Admin), lọc IsDeleted = 0Users5GET/api/users/{id}Lấy thông tin chi tiết một người dùng kèm danh sách RoleUsers6PUT/api/users/{id}Cập nhật thông tin cá nhân (FullName, Email), tự động ghi UpdatedAtUsers7DELETE/api/users/{id}Xóa mềm người dùng (IsDeleted = 1), không cho phép đăng nhập lạiUsers8PATCH/api/users/{id}/passwordĐổi mật khẩu, yêu cầu gửi kèm mật khẩu cũ để xác minhUsers9GET/api/rolesLấy danh sách tất cả các vai trò (Admin, Staff, Customer...)Roles10POST/api/rolesTạo một vai trò mới trong hệ thốngRoles11GET/api/brandsLấy danh sách tất cả thương hiệu đang hoạt động (IsDeleted = 0)Brands12GET/api/brands/{id}Lấy thông tin chi tiết một thương hiệuBrands13POST/api/brandsThêm thương hiệu mới (Name, Description)Brands14PUT/api/brands/{id}Cập nhật thông tin thương hiệuBrands15DELETE/api/brands/{id}Xóa mềm thương hiệuBrands16GET/api/categoriesLấy danh sách danh mục, hỗ trợ cấu trúc phân cấp Cha-Con (ParentCategoryId)Categories17GET/api/categories/{id}Lấy chi tiết một danh mục kèm danh sách danh mục con (nếu có)Categories18POST/api/categoriesThêm danh mục mới, có thể gán ParentCategoryId để tạo phân cấpCategories19PUT/api/categories/{id}Cập nhật tên hoặc thay đổi danh mục chaCategories20DELETE/api/categories/{id}Xóa mềm danh mụcCategories21GET/api/productsLấy danh sách sản phẩm, hỗ trợ lọc theo CategoryId, BrandId, tìm kiếm theo tên/SKUProducts22GET/api/products/{id}Lấy chi tiết sản phẩm bao gồm thông tin giá vốn, giá bán, tồn khoProducts23POST/api/productsThêm sản phẩm mới với đầy đủ thông tin (SKU, Name, Unit, CostPrice, RetailPrice...)Products24PUT/api/products/{id}Cập nhật thông tin sản phẩm, tự động ghi nhận thời điểm sửa vào UpdatedAtProducts25DELETE/api/products/{id}Xóa mềm sản phẩm, sản phẩm sẽ không xuất hiện trong các danh sách và đơn hàng mớiProducts26GET/api/suppliersLấy danh sách nhà cung cấp, phục vụ cho phân hệ Mua hàng (PO)Suppliers27GET/api/suppliers/{id}Lấy chi tiết một nhà cung cấp (thông tin liên hệ, địa chỉ)Suppliers28POST/api/suppliersThêm nhà cung cấp mớiSuppliers29PUT/api/suppliers/{id}Cập nhật thông tin nhà cung cấpSuppliers30DELETE/api/suppliers/{id}Xóa mềm nhà cung cấpSuppliers31GET/api/customersLấy danh sách khách hàng, hỗ trợ tìm kiếm theo tên, SĐT, emailCustomers32GET/api/customers/{id}Lấy chi tiết khách hàng kèm thông tin tài khoản liên kết (nếu có UserId)Customers33POST/api/customersThêm khách hàng mới (có thể tạo nhanh khi khách mua lần đầu tại quầy)Customers34PUT/api/customers/{id}Cập nhật thông tin khách hàng (địa chỉ, SĐT, email)Customers35DELETE/api/customers/{id}Xóa mềm khách hàngCustomers36GET/api/purchase-ordersLấy danh sách đơn mua hàng, hỗ trợ lọc theo Status (PENDING, RECEIVED, CANCELLED)PurchaseOrders37GET/api/purchase-orders/{id}Lấy chi tiết đơn mua hàng kèm danh sách PurchaseOrderItems (sản phẩm, số lượng, đơn giá)PurchaseOrders38POST/api/purchase-ordersTạo đơn mua hàng mới từ nhà cung cấp, trạng thái mặc định là PENDINGPurchaseOrders39PATCH/api/purchase-orders/{id}/receiveXác nhận nhập kho: chuyển Status → RECEIVED, ghi ReceivedDate, cộng tồn kho và ghi log StockMovementsPurchaseOrders40PATCH/api/purchase-orders/{id}/cancelHủy đơn mua hàng (chỉ được hủy khi Status = PENDING)PurchaseOrders41GET/api/sales-ordersLấy danh sách đơn bán hàng, hỗ trợ lọc theo Status, CustomerId, khoảng thời gianSalesOrders42GET/api/sales-orders/{id}Lấy chi tiết đơn bán hàng kèm danh sách SalesOrderItems (sản phẩm, số lượng, đơn giá, chiết khấu)SalesOrders43POST/api/sales-ordersTạo đơn bán hàng mới: tự động trừ tồn kho, ghi log xuất kho vào StockMovements, tính TotalAmountSalesOrders44PATCH/api/sales-orders/{id}/statusCập nhật trạng thái đơn hàng (SHIPPING → COMPLETED hoặc CANCELLED). Nếu hủy đơn → hoàn lại tồn khoSalesOrders45GET/api/inventory/movementsXem nhật ký biến động kho (nhập/xuất/điều chỉnh), hỗ trợ lọc theo ProductId, MovementTypeInventory46POST/api/inventory/adjustĐiều chỉnh tồn kho thủ công khi kiểm kê thực tế bị lệch, ghi log MovementType = ADJUSTMENTInventory47GET/api/reports/low-stockDanh sách sản phẩm có StockQuantity dưới ngưỡng cảnh báo (query param: threshold)Reports48GET/api/reports/revenueBáo cáo doanh thu tổng hợp từ SalesOrders theo khoảng thời gian (query param: from, to)Reports49GET/api/reports/top-sellingDanh sách sản phẩm bán chạy nhất, tổng hợp từ SalesOrderItems (query param: top, from)Reports3.2. API Detail Design
+3.2.1. Module Xác thực (Auth)
+API 1.1: POST /api/auth/login
+Tên API: Đăng nhập hệ thống, xác thực bằng UserName & Password, trả về JWT Token
+Method: POST
+URL: /api/auth/login
+Authentication: Không yêu cầu
+Request Parameters: Body: 
+{
+  "userName": "admin",
+  "password": "password123"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 1.2: POST /api/auth/register
+Tên API: Đăng ký tài khoản mới, mặc định gán Role "Customer"
+Method: POST
+URL: /api/auth/register
+Authentication: Không yêu cầu
+Request Parameters: Body:
+
+{
+  "userName": "user1",
+  "password": "password123",
+  "email": "user@test.com",
+  "fullName": "User Name"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 1.3: POST /api/auth/refresh-token
+Tên API: Làm mới Access Token khi Token cũ hết hạn
+Method: POST
+URL: /api/auth/refresh-token
+Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "token": "jwt-token",
+  "refreshToken": "refresh-token"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+3.2.2. Module Quản lý Người dùng (Users)
+API 2.1: GET /api/users
+• Tên API: Lấy danh sách tất cả người dùng (chỉ Admin), lọc `IsDeleted = 0`
+• Method: GET
+• URL: /api/users
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 2.2: GET /api/users/{id}
+• Tên API: Lấy thông tin chi tiết một người dùng kèm danh sách Role
+• Method: GET
+• URL: /api/users/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 2.3: PUT /api/users/{id}
+• Tên API: Cập nhật thông tin cá nhân (FullName, Email), tự động ghi `UpdatedAt`
+• Method: PUT
+• URL: /api/users/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Body:
+{
+  "fullName": "Updated Name",
+  "email": "updated@test.com"
+}
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+API 2.4: DELETE /api/users/{id}
+• Tên API: Xóa mềm người dùng (`IsDeleted = 1`), không cho phép đăng nhập lại
+• Method: DELETE
+• URL: /api/users/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+API 2.5: PATCH /api/users/{id}/password
+• Tên API: Đổi mật khẩu, yêu cầu gửi kèm mật khẩu cũ để xác minh
+• Method: PATCH
+• URL: /api/users/{id}/password
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Body:
+{
+  "oldPassword": "old",
+  "newPassword": "new"
+}
+Response Body:
+{
+  "success": true,
+  "message": "Updated successfully"
+}
+3.2.3. Module Quản lý Vai trò (Roles)
+API 3.1: GET /api/roles
+• Tên API: Lấy danh sách tất cả các vai trò (Admin, Staff, Customer...)
+• Method: GET
+• URL: /api/roles
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 3.2: POST /api/roles
+• Tên API: Tạo một vai trò mới trong hệ thống
+• Method: POST
+• URL: /api/roles
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "name": "Staff",
+  "description": "Staff role"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+3.2.4. Module Thương hiệu (Brands)
+API 4.1: GET /api/brands
+• Tên API: Lấy danh sách tất cả thương hiệu đang hoạt động (`IsDeleted = 0`)
+• Method: GET
+• URL: /api/brands
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 4.2: GET /api/brands/{id}
+• Tên API: Lấy thông tin chi tiết một thương hiệu
+• Method: GET
+• URL: /api/brands/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 4.3: POST /api/brands
+• Tên API: Thêm thương hiệu mới (Name, Description)
+• Method: POST
+• URL: /api/brands
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "name": "Bandai",
+  "description": "Toy manufacturer"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 4.4: PUT /api/brands/{id}
+• Tên API: Cập nhật thông tin thương hiệu
+• Method: PUT
+• URL: /api/brands/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Body:
+{
+  "name": "Bandai",
+  "description": "Toy manufacturer"
+}
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+API 4.5: DELETE /api/brands/{id}
+• Tên API: Xóa mềm thương hiệu
+• Method: DELETE
+• URL: /api/brands/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+3.2.5. Module Danh mục Sản phẩm (Categories)
+API 5.1: GET /api/categories
+• Tên API: Lấy danh sách danh mục, hỗ trợ cấu trúc phân cấp Cha-Con (ParentCategoryId)
+• Method: GET
+• URL: /api/categories
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 5.2: GET /api/categories/{id}
+• Tên API: Lấy chi tiết một danh mục kèm danh sách danh mục con (nếu có)
+• Method: GET
+• URL: /api/categories/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 5.3: POST /api/categories
+• Tên API: Thêm danh mục mới, có thể gán ParentCategoryId để tạo phân cấp
+• Method: POST
+• URL: /api/categories
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "name": "Gundam",
+  "parentCategoryId": null
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 5.4: PUT /api/categories/{id}
+Tên API: Cập nhật tên hoặc thay đổi danh mục cha
+Method: PUT
+URL: /api/categories/{id}
+Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Body:
+{
+  "name": "Gundam",
+  "parentCategoryId": null
+}
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+API 5.5: DELETE /api/categories/{id}
+• Tên API: Xóa mềm danh mục
+• Method: DELETE
+• URL: /api/categories/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+3.2.6. Module Sản phẩm (Products)
+API 6.1: GET /api/products
+• Tên API: Lấy danh sách sản phẩm, hỗ trợ lọc theo CategoryId, BrandId, tìm kiếm theo tên/SKU
+• Method: GET
+• URL: /api/products
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 6.2: GET /api/products/{id}
+• Tên API: Lấy chi tiết sản phẩm bao gồm thông tin giá vốn, giá bán, tồn kho
+• Method: GET
+• URL: /api/products/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 6.3: POST /api/products
+• Tên API: Thêm sản phẩm mới với đầy đủ thông tin (SKU, Name, Unit, CostPrice, RetailPrice...)
+• Method: POST
+• URL: /api/products
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "categoryId": 1,
+  "brandId": 1,
+  "sku": "SP001",
+  "name": "Gundam RX-78-2",
+  "description": "Model kit",
+  "unit": "Hộp",
+  "costPrice": 500000,
+  "retailPrice": 800000,
+  "stockQuantity": 10,
+  "imageUrl": "/images/gundam.jpg"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 6.4: PUT /api/products/{id}
+• Tên API: Cập nhật thông tin sản phẩm, tự động ghi nhận thời điểm sửa vào `UpdatedAt`
+• Method: PUT
+• URL: /api/products/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Body:
+{
+  "categoryId": 1,
+  "brandId": 1,
+  "sku": "SP001",
+  "name": "Gundam RX-78-2",
+  "description": "Model kit",
+  "unit": "Hộp",
+  "costPrice": 500000,
+  "retailPrice": 800000,
+  "stockQuantity": 10,
+  "imageUrl": "/images/gundam.jpg"
+}
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+API 6.5: DELETE /api/products/{id}
+• Tên API: Xóa mềm sản phẩm, sản phẩm sẽ không xuất hiện trong các danh sách và đơn hàng mới
+• Method: DELETE
+• URL: /api/products/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+3.2.7. Module Nhà cung cấp (Suppliers)
+API 7.1: GET /api/suppliers
+• Tên API: Lấy danh sách nhà cung cấp, phục vụ cho phân hệ Mua hàng (PO)
+• Method: GET
+• URL: /api/suppliers
+• Authentication: Không yêu cầu
+• Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 7.2: GET /api/suppliers/{id}
+• Tên API: Lấy chi tiết một nhà cung cấp (thông tin liên hệ, địa chỉ)
+• Method: GET
+• URL: /api/suppliers/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 7.3:  POST /api/suppliers
+• Tên API: Thêm nhà cung cấp mới
+• Method: POST
+• URL: /api/suppliers
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "name": "Supplier A",
+  "contactPerson": "Mr. A",
+  "phone": "0901234567",
+  "email": "contact@suppliera.com",
+  "address": "123 Street, City"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 7.4: PUT /api/suppliers/{id}
+• Tên API: Cập nhật thông tin nhà cung cấp
+• Method: PUT
+• URL: /api/suppliers/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Body:
+{
+  "name": "Supplier A",
+  "contactPerson": "Mr. A",
+  "phone": "0901234567",
+  "email": "contact@suppliera.com",
+  "address": "123 Street, City"
+}
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+API 7.5: DELETE /api/suppliers/{id}
+• Tên API: Xóa mềm nhà cung cấp
+• Method: DELETE
+• URL: /api/suppliers/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+3.2.8. Module Khách hàng (Customers)
+API 8.1: GET /api/customers
+• Tên API: Lấy danh sách khách hàng, hỗ trợ tìm kiếm theo tên, SĐT, email
+• Method: GET
+• URL: /api/customers
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 8.2: GET /api/customers/{id}
+• Tên API: Lấy chi tiết khách hàng kèm thông tin tài khoản liên kết (nếu có UserId)
+• Method: GET
+• URL: /api/customers/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 8.3: POST /api/customers
+• Tên API: Thêm khách hàng mới (có thể tạo nhanh khi khách mua lần đầu tại quầy)
+• Method: POST
+• URL: /api/customers
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "fullName": "Customer A",
+  "phone": "0987654321",
+  "email": "customer@gmail.com",
+  "address": "456 Avenue, City"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 8.4: PUT /api/customers/{id}
+• Tên API: Cập nhật thông tin khách hàng (địa chỉ, SĐT, email)
+• Method: PUT
+• URL: /api/customers/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Body:
+{
+  "fullName": "Customer A",
+  "phone": "0987654321",
+  "email": "customer@gmail.com",
+  "address": "456 Avenue, City"
+}
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+API 8.5: DELETE /api/customers/{id}
+• Tên API: Xóa mềm khách hàng
+• Method: DELETE
+• URL: /api/customers/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "status": 204,
+  "message": "No Content"
+}
+3.2.9. Module Mua hàng - Nhập kho (Purchase Orders)
+API 9.1: GET /api/purchase-orders
+• Tên API: Lấy danh sách đơn mua hàng, hỗ trợ lọc theo Status (PENDING, RECEIVED, CANCELLED)
+• Method: GET
+• URL: /api/purchase-orders
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 9.2: GET /api/purchase-orders/{id}
+• Tên API: Lấy chi tiết đơn mua hàng kèm danh sách PurchaseOrderItems (sản phẩm, số lượng, đơn giá)
+• Method: GET
+• URL: /api/purchase-orders/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 9.3: POST /api/purchase-orders
+• Tên API: Tạo đơn mua hàng mới từ nhà cung cấp, trạng thái mặc định là PENDING
+• Method: POST
+• URL: /api/purchase-orders
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "supplierId": 1,
+  "expectedDate": "2026-05-20T00:00:00Z",
+  "notes": "Urgent delivery",
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 50,
+      "unitPrice": 450000
+    }
+  ]
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 9.4: PATCH /api/purchase-orders/{id}/receive
+• Tên API: Xác nhận nhập kho: chuyển Status → RECEIVED, ghi ReceivedDate, **cộng tồn kho** và **ghi log StockMovements**
+• Method: PATCH
+• URL: /api/purchase-orders/{id}/receive
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "success": true,
+  "message": "Updated successfully"
+}
+API 9.5: PATCH /api/purchase-orders/{id}/cancel
+• Tên API: Hủy đơn mua hàng (chỉ được hủy khi Status = PENDING)
+• Method: PATCH
+• URL: /api/purchase-orders/{id}/cancel
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "success": true,
+  "message": "Updated successfully"
+}
+3.2.10. Module Bán hàng (Sales Orders)
+API 10.1: GET /api/sales-orders
+• Tên API: Lấy danh sách đơn bán hàng, hỗ trợ lọc theo Status, CustomerId, khoảng thời gian
+• Method: GET
+• URL: /api/sales-orders
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 10.2: GET /api/sales-orders/{id}
+• Tên API: Lấy chi tiết đơn bán hàng kèm danh sách SalesOrderItems (sản phẩm, số lượng, đơn giá, chiết khấu)
+• Method: GET
+• URL: /api/sales-orders/{id}
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "id": 1,
+  "name": "Sample Data",
+  "createdAt": "2026-05-12T00:00:00Z"
+}
+API 10.3: POST /api/sales-orders
+• Tên API: Tạo đơn bán hàng mới: tự động **trừ tồn kho**, ghi log xuất kho vào StockMovements, tính TotalAmount
+• Method: POST
+• URL: /api/sales-orders
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "customerId": 1,
+  "paymentMethod": "COD",
+  "shippingAddress": "789 Road, City",
+  "notes": "Call before delivery",
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2,
+      "unitPrice": 800000,
+      "discount": 0
+    }
+  ]
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 10.4: PATCH /api/sales-orders/{id}/status
+• Tên API: Cập nhật trạng thái đơn hàng (SHIPPING → COMPLETED hoặc CANCELLED). Nếu hủy đơn → **hoàn lại tồn kho**
+• Method: PATCH
+• URL: /api/sales-orders/{id}/status
+• Authentication: Không yêu cầu
+Request Parameters: Path: `id` (int)
+Response Body:
+{
+  "success": true,
+  "message": "Updated successfully"
+}
+3.2.11. Module Kho hàng & Báo cáo (Inventory & Reports)
+API 11.1: GET /api/inventory/movements
+• Tên API: Xem nhật ký biến động kho (nhập/xuất/điều chỉnh), hỗ trợ lọc theo ProductId, MovementType
+• Method: GET
+• URL: /api/inventory/movements
+• Authentication: Không yêu cầu
+Request Parameters: Không có
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 11.2: POST /api/inventory/adjust
+• Tên API: Điều chỉnh tồn kho thủ công khi kiểm kê thực tế bị lệch, ghi log MovementType = ADJUSTMENT
+• Method: POST
+• URL: /api/inventory/adjust
+• Authentication: Không yêu cầu
+Request Parameters: Body:
+{
+  "productId": 1,
+  "quantityAdjusted": -2,
+  "reason": "Hư hỏng do vận chuyển"
+}
+Response Body:
+{
+  "id": 1,
+  "message": "Created successfully"
+}
+API 11.3: GET /api/reports/low-stock
+• Tên API: Danh sách sản phẩm có StockQuantity dưới ngưỡng cảnh báo (query param: `threshold`)
+• Method: GET
+• URL: /api/reports/low-stock
+• Authentication: Không yêu cầu
+Request Parameters: Query: `threshold` (int)
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 11.4: GET /api/reports/revenue
+• Tên API: Báo cáo doanh thu tổng hợp từ SalesOrders theo khoảng thời gian (query param: `from`, `to`)
+• Method: GET
+• URL: /api/reports/revenue
+• Authentication: Không yêu cầu
+Request Parameters: Query: `from` (date), `to` (date)
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+API 11.5: GET /api/reports/top-selling
+• Tên API: Danh sách sản phẩm bán chạy nhất, tổng hợp từ SalesOrderItems (query param: `top`, `from`)
+• Method: GET
+• URL: /api/reports/top-selling
+• Authentication: Không yêu cầu
+Request Parameters: Query: `top` (int)
+Response Body:
+[
+  {
+    "id": 1,
+    "name": "Sample Data",
+    "createdAt": "2026-05-12T00:00:00Z"
+  }
+]
+3.3. Quy Ước Response Chung
+3.3.1. Response Wrapper
+Tất cả API đều sử dụng wrapper ApiResponse:
+{
+  "success": true/false,
+  "message": "Mô tả kết quả",
+  "data": { ... }
+}
+3.3.2. HTTP Status Codes
+Status CodeÝ nghĩaKhi nào dùng200 OKThành côngGET, PUT, DELETE thành công201 CreatedTạo thành côngPOST tạo mới resource400 Bad RequestLỗi nghiệp vụValidation fail, tồn kho không đủ404 Not FoundKhông tìm thấyResource không tồn tại hoặc đã bị soft delete500 Internal Server ErrorLỗi serverException không xử lý được3.3.3. Soft Delete Convention
+• Tất cả DELETE API thực hiện Soft Delete (UPDATE IsDeleted = 1)
+• Tất cả GET API tự động filter WHERE IsDeleted = 0
+• Dữ liệu đã soft delete không xuất hiện trong kết quả trả về
+
+
+CHƯƠNG 4: KHỞI TẠO DỰ ÁN & CẤU HÌNH
+Step 1: Tạo Solution và Projects
+• Dự án được tổ chức theo mô hình nhiều project trong cùng một Solution.
+• Solution chính bao gồm hai project: MiniERP_API và MiniERP_WebView.
+• MiniERP_API sử dụng ASP.NET Core Web API để xử lý backend và kết nối database.
+• MiniERP_WebView sử dụng ASP.NET Core MVC để hiển thị giao diện người dùng.
+• Các bước tạo Solution gồm: tạo Blank Solution, thêm Web API project và MVC project.
+Step 2: Cấu hình Connection String
+• Connection String được cấu hình trong file appsettings.json.
+• Thông tin bao gồm Server, Database, Authentication và TrustServerCertificate.
+• Database script gồm Schema.sql và SeedData.sql để tạo bảng và dữ liệu mẫu.
+Ví dụ cấu hình appsettings.json trong project:
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=.;Database=MiniERP;Trusted_Connection=True;TrustServerCertificate=True"
+  }
+}
+Giải thích:
+• Server=. : sử dụng SQL Server local
+• Database=MiniERP : tên database
+• Trusted_Connection=True : dùng Windows Authentication
+• TrustServerCertificate=True : bỏ kiểm tra SSL certificate
+Ví dụ đọc Connection String trong project:
+public SqlConnectionFactory(IConfiguration configuration)
+{
+    _connectionString = configuration.GetConnectionString("DefaultConnection");
+}
+Step 3: Tạo SqlConnectionFactory (DAL)
+• SqlConnectionFactory giúp quản lý kết nối SQL tập trung.
+• Factory sử dụng IConfiguration để đọc Connection String.
+• Repository sẽ gọi CreateConnection() để tạo SqlConnection mới.
+• Mô hình DAL giúp giảm lặp code và dễ bảo trì.
+Ví dụ class SqlConnectionFactory:
+using Microsoft.Data.SqlClient;
+using System.Data;
+
+public class SqlConnectionFactory
+{
+    private readonly string _connectionString;
+
+    public SqlConnectionFactory(IConfiguration configuration)
+    {
+        _connectionString = configuration.GetConnectionString("DefaultConnection");
+    }
+
+    public IDbConnection CreateConnection()
+    {
+        return new SqlConnection(_connectionString);
+    }
+}
+Step 4: Đăng ký Dependency Injection (Program.cs)
+• Program.cs là nơi cấu hình service và middleware.
+• Dependency Injection giúp tự động inject object giữa Controller, Service và Repository.
+• SqlConnectionFactory thường được đăng ký bằng AddSingleton.
+• Repository và Service thường dùng AddScoped.
+Ví dụ code Program.cs trong project:
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<SqlConnectionFactory>();
+
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IProductService, ProductService>();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
+Ý nghĩa:
+• AddSingleton: tạo duy nhất 1 instance trong toàn bộ application
+• AddScoped: tạo mới theo mỗi HTTP Request
+• MapControllers(): ánh xạ API Controller
+• UseSwagger(): bật Swagger để test API
+Step 5: Tạo BaseEntity (Models)
+• BaseEntity giúp tái sử dụng các field dùng chung như Id, CreatedAt, UpdatedAt.
+• Các entity như Product, Category, Order sẽ kế thừa BaseEntity.
+• Giúp đồng bộ cấu trúc dữ liệu và dễ mở rộng hệ thống.
+Ví dụ BaseEntity:
+public class BaseEntity
+{
+    public int Id { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime UpdatedAt { get; set; }
+
+    public bool IsDeleted { get; set; }
+}
+CHƯƠNG 5: MODELS & DATA ACCESS LAYER (ADO.NET)
+5.1 Models
+      Models là các class đại diện cho dữ liệu của hệ thống và ánh xạ với các bảng trong SQL Server.
+      Các model được sử dụng trong hệ thống bao gồm:
+• Product
+• Category
+• Order
+• OrderDetail
+• User
+• Inventory
+      Các model trong project thường được tổ chức trong thư mục Models và được sử dụng xuyên suốt toàn bộ hệ thống. Khi Repository truy vấn dữ liệu từ SQL Server, dữ liệu sẽ được chuyển đổi thành các object model tương ứng để Service và Controller có thể tiếp tục xử lý. Nhờ đó kiến trúc hệ thống trở nên rõ ràng và có tính đồng bộ cao hơn.
+5.2 Vai trò của Models
+• Đại diện dữ liệu database
+• Trao đổi dữ liệu giữa các tầng
+• Hỗ trợ mapping dữ liệu
+• Chuẩn hóa cấu trúc hệ thống
+5.3 BaseEntity
+      Các model kế thừa BaseEntity để tái sử dụng các thuộc tính chung.
+public class BaseEntity
+{
+    public int Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public bool IsDeleted { get; set; }
+}
+      Khi một model như Product kế thừa BaseEntity thì model đó sẽ tự động có đầy đủ các thuộc tính dùng chung mà không cần khai báo lại. Cách tổ chức này giúp hệ thống dễ mở rộng hơn trong tương lai và hỗ trợ tốt cho việc quản lý dữ liệu cũng như theo dõi lịch sử thay đổi.
+5.4 Data Access Layer (DAL)
+      DAL là tầng chịu trách nhiệm truy cập dữ liệu và thao tác với SQL Server.
+• Kết nối database
+• Thực hiện CRUD
+• Chạy SQL Query
+• Tách biệt dữ liệu khỏi business logic
+      Dự án sử dụng Repository Pattern để tổ chức Data Access Layer. Mỗi repository sẽ chịu trách nhiệm thao tác với một nhóm dữ liệu cụ thể. Ví dụ: ProductRepository quản lý dữ liệu sản phẩm, OrderRepository quản lý dữ liệu đơn hàng. Cách tổ chức này giúp hệ thống có cấu trúc rõ ràng và dễ dàng mở rộng thêm chức năng mới.
+5.5 SqlConnectionFactory
+      Project sử dụng SqlConnectionFactory để quản lý kết nối SQL tập trung.
+public class SqlConnectionFactory
+{
+    private readonly string _connectionString;
+
+    public SqlConnectionFactory(IConfiguration configuration)
+    {
+        _connectionString = configuration.GetConnectionString("DefaultConnection");
+    }
+
+    public IDbConnection CreateConnection()
+    {
+        return new SqlConnection(_connectionString);
+    }
+}
+      Class này có nhiệm vụ đọc Connection String từ file appsettings.json và tạo đối tượng SqlConnection cho Repository sử dụng. Việc gom phần tạo kết nối vào một class riêng giúp tránh lặp code và tăng tính nhất quán trong toàn hệ thống.
+5.6 Repository Pattern
+      Repository Pattern giúp tách riêng tầng truy cập dữ liệu khỏi tầng nghiệp vụ.
+• Controller gọi Service
+• Service gọi Repository
+• Repository truy cập SQL Server
+• Repository trả dữ liệu về Service
+public class ProductRepository : IProductRepository
+{
+    private readonly SqlConnectionFactory _factory;
+
+    public ProductRepository(SqlConnectionFactory factory)
+    {
+        _factory = factory;
+    }
+
+    public async Task<IEnumerable<Product>> GetAll()
+    {
+        using var connection = _factory.CreateConnection();
+        var sql = "SELECT * FROM Products";
+        return await connection.QueryAsync<Product>(sql);
+    }
+}
+      Trong đoạn code trên, ProductRepository sử dụng SqlConnectionFactory để tạo kết nối database. Sau đó Repository thực hiện câu lệnh SQL để lấy toàn bộ dữ liệu sản phẩm từ bảng Products. Kết quả truy vấn được ánh xạ thành danh sách Product và trả về cho Service Layer.
+      
+CHƯƠNG 6: SERVICE LAYER
+6.1 Service Layer
+      Business Logic Layer hay còn gọi là tầng xử lý nghiệp vụ là thành phần trung tâm của hệ thống. BLL nằm giữa Controller và Data Access Layer, có nhiệm vụ xử lý các quy tắc nghiệp vụ trước khi truy cập hoặc trả dữ liệu về cho client. Đây là nơi chứa các logic quan trọng của hệ thống ERP như tính toán dữ liệu, kiểm tra điều kiện, xử lý workflow và phối hợp nhiều repository khác nhau.
+6.2 Vai trò của Service Layer
+      Service Layer giúp giảm tải cho Controller bằng cách chuyển toàn bộ logic xử lý sang tầng riêng.
+public class ProductService : IProductService
+{
+    private readonly IProductRepository _repository;
+
+    public ProductService(IProductRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<IEnumerable<Product>> GetAllProducts()
+    {
+        return await _repository.GetAll();
+    }
+}
+      Trong ví dụ trên, ProductService nhận ProductRepository thông qua Dependency Injection. Khi Controller yêu cầu lấy danh sách sản phẩm, Service sẽ gọi Repository để truy vấn dữ liệu và trả kết quả về cho Controller.
+6.3 Flow hoạt động
+• Client gửi request
+• Controller nhận request
+• Controller gọi Service
+• Service xử lý logic
+• Repository truy cập database
+6.4 Service Layer trong Project
+      Trong project, Service Layer đại diện cho Business Logic Layer.
+
+public class ProductService : IProductService
+{
+    private readonly IProductRepository _repository;
+
+    public ProductService(IProductRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<IEnumerable<Product>> GetAllProducts()
+    {
+        return await _repository.GetAll();
+    }
+}
+6.5 Lợi ích của Business Layer
+• Giúp Controller sạch hơn
+• Có thể tái sử dụng logic
+• Giúp hệ thống dễ maintain
+• Có thể dễ dàng mở rộng hệ thống
+• Unit test cũng sẽ dễ hơn
+CHƯƠNG 7: API CONTROLLERS & DTOs
+7.1 API Controller
+      Controller là nơi nhận HTTP Request và trả HTTP Response.
+• Nhận request từ frontend
+• Gọi service xử lý
+• Trả dữ liệu JSON
+• Điều hướng endpoint
+
+      Mỗi Controller thường đại diện cho một nhóm chức năng cụ thể của hệ thống. Ví dụ ProductsController quản lý API sản phẩm, OrdersController quản lý API đơn hàng. Controller sẽ gọi Service Layer để xử lý nghiệp vụ thay vì thao tác trực tiếp với database.
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController : ControllerBase
+{
+    private readonly IProductService _service;
+
+    public ProductsController(IProductService service)
+    {
+        _service = service;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var products = await _service.GetAllProducts();
+        return Ok(products);
+    }
+}
+7.2 DTO và vai trò trong API
+      DTO (Data Transfer Object) là object dùng để truyền dữ liệu giữa API và client.
+• Ẩn dữ liệu nhạy cảm
+• Giảm dữ liệu dư thừa
+• Tăng bảo mật
+• Tối ưu response
+
+public class ProductDTO
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+
+      Việc sử dụng DTO giúp tăng tính bảo mật cho hệ thống vì có thể ẩn các trường dữ liệu nhạy cảm. Ngoài ra DTO còn giúp giảm dung lượng dữ liệu trả về và tối ưu hiệu suất API.
+7.3 Swagger API
+      Dự án Mini ERP sử dụng Swagger để hỗ trợ kiểm thử API trực tiếp trên trình duyệt. Swagger giúp lập trình viên dễ dàng xem danh sách endpoint, gửi request và kiểm tra response mà không cần sử dụng phần mềm bên ngoài.
+
+builder.Services.AddSwaggerGen();
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+      Khi chạy project ở môi trường Development, Swagger UI sẽ tự động hiển thị giao diện kiểm thử API. Điều này giúp quá trình phát triển và debug hệ thống diễn ra nhanh chóng hơn.
+
+CHƯƠNG 8: KIỂM THỬ & TỔNG KẾT
+8.1. Danh Sách API Endpoints
+MethodEndpointMô tả**Products**GET`/api/products`Lấy tất cả sản phẩmGET`/api/products/{id}`Lấy sản phẩm theo IDPOST`/api/products`Tạo sản phẩm mớiPUT`/api/products/{id}`Cập nhật sản phẩmDELETE`/api/products/{id}`Xóa mềm sản phẩm**Customers**GET`/api/customers`Lấy tất cả khách hàngGET`/api/customers/{id}`Lấy khách hàng theo IDPOST`/api/customers`Tạo khách hàng mớiPUT`/api/customers/{id}`Cập nhật khách hàngDELETE`/api/customers/{id}`Xóa mềm khách hàng**Orders**GET`/api/orders`Lấy tất cả đơn hàngGET`/api/orders/{id}`Lấy chi tiết đơn hàngPOST`/api/orders`Tạo đơn hàng mớiDELETE`/api/orders/{id}`Xóa mềm đơn hàng**Inventory**POST`/api/inventory/import`Nhập khoPOST`/api/inventory/export`Xuất kho**Reports**GET`/api/reports/revenue?year=2026`Thống kê doanh thu theo tháng8.2. Test Bằng Swagger / Postman
+2.1. Chạy ứng dụng
+cd MiniERP.API
+dotnet run
+Truy cập Swagger UI: https://localhost:5001/swagger
+2.2. Test Cases Mẫu
+#### Test 1: Tạo sản phẩm
+POST /api/products
+Content-Type: application/json
+
+{
+  "productCode": "SP005",
+  "productName": "Bàn phím cơ",
+  "categoryId": 1,
+  "unit": "Cái",
+  "price": 850000,
+  "costPrice": 600000,
+  "stockQuantity": 30
+}
+Response (201):
+{
+  "success": true,
+  "message": "Tạo sản phẩm thành công",
+  "data": { "productId": 5 }
+}
+#### Test 2: Tạo đơn hàng
+POST /api/orders
+Content-Type: application/json
+
+{
+  "customerId": 1,
+  "note": "Đơn hàng test",
+  "items": [
+    { "productId": 1, "quantity": 2 },
+    { "productId": 2, "quantity": 3 }
+  ]
+}
+Response (201):
+{
+  "success": true,
+  "message": "Tạo đơn hàng thành công",
+  "data": { "orderId": 1 }
+}
+#### Test 3: Nhập kho
+POST /api/inventory/import
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 100,
+  "unitPrice": 180000,
+  "note": "Nhập lô hàng mới"
+}
+#### Test 4: Xuất kho (lỗi khi không đủ tồn kho)
+POST /api/inventory/export
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 99999,
+  "unitPrice": 250000,
+  "note": "Xuất cho đại lý"
+}
+Response (400):
+{
+  "success": false,
+  "message": "Tồn kho không đủ! Hiện có: 150"
+}
+#### Test 5: Soft Delete sản phẩm
+DELETE /api/products/1
+Response (200):
+{
+  "success": true,
+  "message": "Xóa sản phẩm thành công (soft delete)"
+}
+Sau khi DELETE, gọi GET /api/products sẽ không thấy sản phẩm ID=1 nữa,
+nhưng dữ liệu vẫn tồn tại trong DB với IsDeleted = 1.
+#### Test 6: Thống kê doanh thu
+GET /api/reports/revenue?year=2026
+Response (200):
+{
+  "success": true,
+  "message": "Thành công",
+  "data": {
+    "year": 2026,
+    "monthlyData": [
+      { "month": 1, "monthName": "Tháng 1", "totalOrders": 15, "totalRevenue": 12500000 },
+      { "month": 2, "monthName": "Tháng 2", "totalOrders": 22, "totalRevenue": 18750000 },
+      { "month": 3, "monthName": "Tháng 3", "totalOrders": 18, "totalRevenue": 15200000 }
+    ],
+    "grandTotal": 46450000
+  }
+}
+8.3. Tóm Tắt Kỹ Thuật Đã Sử Dụng
+Kỹ thuậtNơi áp dụng**ASP.NET Core Web API**Presentation Layer (Controllers)**ADO.NET** (SqlConnection, SqlCommand, SqlDataReader)Data Access Layer**Dependency Injection**Program.cs – đăng ký Service/Repository**Repository Pattern**DAL – tách biệt logic truy vấn DB**3-Layer Architecture**API → BLL → DAL**Soft Delete**`IsDeleted = 1` thay vì DELETE**SQL Transaction**Inventory – đảm bảo toàn vẹn dữ liệu**DTO Pattern**Request/Response riêng biệt**Data Annotations**Validate input tại Controller8.4. Thứ Tự Triển Khai (Roadmap)
+Tuần 1: Database + Models + DAL (Products, Categories)
+    ↓
+Tuần 2: BLL + API Controllers (Products, Customers) 
+    ↓
+Tuần 3: Orders + OrderDetails (nghiệp vụ phức tạp)
+    ↓
+Tuần 4: Inventory (Nhập/Xuất kho + Transaction)
+    ↓
+Tuần 5: Reports (Thống kê doanh thu) + Test + Hoàn thiện
+8.5. Cấu Trúc Tài Liệu
+FileNội dung`01_TongQuan_KienTruc.md`Tổng quan, kiến trúc 3 lớp, cấu trúc project`02_ThietKe_Database.md`ERD, SQL Script tạo DB, Stored Procedures`03_KhoiTao_CauHinh.md`Tạo Solution, cấu hình DI, Connection String`04_Models_DAL.md`Models, Repository Pattern, ADO.NET code`05_BLL_Services.md`Business Logic, validation nghiệp vụ`06_API_Controllers.md`Controllers, DTOs, API endpoints`07_Test_TongKet.md`Test cases, tổng kết kỹ thuật
+

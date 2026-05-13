@@ -30,8 +30,21 @@ namespace MiniERP_API.Services
             return _mapper.Map<SupplierDto>(supplier);
         }
 
-        public int Create(Supplier s) => _repo.Add(s);
-        public void Update(Supplier s) => _repo.Update(s);
+        public int Create(SupplierCreateUpdateDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhà cung cấp không được để trống.");
+            var supplier = _mapper.Map<Supplier>(dto);
+            return _repo.Add(supplier);
+        }
+        public void Update(int id, SupplierCreateUpdateDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhà cung cấp không được để trống.");
+            var existing = _repo.GetById(id);
+            if (existing == null) throw new System.Exception("Nhà cung cấp không tồn tại.");
+            _mapper.Map(dto, existing);
+            existing.Id = id;
+            _repo.Update(existing);
+        }
         public void Delete(int id) => _repo.Delete(id);
     }
 }

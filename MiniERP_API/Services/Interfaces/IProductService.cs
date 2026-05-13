@@ -8,8 +8,8 @@ namespace MiniERP_API.Services.Interfaces
     {
         IEnumerable<ProductDto> GetActiveProducts();
         ProductDto GetProduct(int id);
-        int CreateProduct(Product product);
-        void UpdateProduct(Product product);
+        int CreateProduct(ProductCreateUpdateDto dto);
+        void UpdateProduct(int id, ProductCreateUpdateDto dto);
         void DeleteProduct(int id);
     }
 }

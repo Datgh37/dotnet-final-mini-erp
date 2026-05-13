@@ -30,18 +30,26 @@ namespace MiniERP_API.Services
             return _mapper.Map<ProductDto>(product);
         }
 
-        public int CreateProduct(Product product)
+        public int CreateProduct(ProductCreateUpdateDto dto)
         {
-            if (string.IsNullOrWhiteSpace(product.Name)) throw new System.Exception("Tên sản phẩm không được để trống.");
-            if (product.CostPrice < 0 || product.RetailPrice < 0) throw new System.Exception("Giá trị không hợp lệ.");
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên sản phẩm không được để trống.");
+            if (dto.CostPrice < 0 || dto.RetailPrice < 0) throw new System.Exception("Giá trị không hợp lệ.");
+            
+            var product = _mapper.Map<Product>(dto);
             return _repo.Add(product);
         }
 
-        public void UpdateProduct(Product product)
+        public void UpdateProduct(int id, ProductCreateUpdateDto dto)
         {
-            if (string.IsNullOrWhiteSpace(product.Name)) throw new System.Exception("Tên sản phẩm không được để trống.");
-            if (product.CostPrice < 0 || product.RetailPrice < 0) throw new System.Exception("Giá trị không hợp lệ.");
-            _repo.Update(product);
+            if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên sản phẩm không được để trống.");
+            if (dto.CostPrice < 0 || dto.RetailPrice < 0) throw new System.Exception("Giá trị không hợp lệ.");
+            
+            var existing = _repo.GetById(id);
+            if (existing == null) throw new System.Exception("Sản phẩm không tồn tại.");
+
+            _mapper.Map(dto, existing);
+            existing.Id = id;
+            _repo.Update(existing);
         }
         public void DeleteProduct(int id) => _repo.Delete(id);
     }
