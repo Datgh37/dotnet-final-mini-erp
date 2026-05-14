@@ -81,6 +81,16 @@ namespace MiniERP_API
                     document.Info.Version = "v1";
                     document.Info.Description = "Hệ thống quản lý bán hàng Mini ERP cho cửa hàng nhỏ";
                 };
+
+                config.AddSecurity("JWT", Enumerable.Empty<string>(), new NSwag.OpenApiSecurityScheme
+                {
+                    Type = NSwag.OpenApiSecuritySchemeType.ApiKey,
+                    Name = "Authorization",
+                    In = NSwag.OpenApiSecurityApiKeyLocation.Header,
+                    Description = "Nhập theo định dạng: Bearer {your_token}"
+                });
+
+                config.OperationProcessors.Add(new NSwag.Generation.Processors.Security.AspNetCoreOperationSecurityScopeProcessor("JWT"));
             });
 
             // DI Registrations - Repositories
