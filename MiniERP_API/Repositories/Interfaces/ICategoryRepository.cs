@@ -10,5 +10,6 @@ namespace MiniERP_API.Repositories.Interfaces
         int Add(ProductCategory category);
         void Update(ProductCategory category);
         void Delete(int id);
+        ProductCategory GetByName(string name);
     }
 }

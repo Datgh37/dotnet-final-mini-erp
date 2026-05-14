@@ -8,16 +8,18 @@ GO
 /****** 1. Phân quyền & Người dùng ******/
 CREATE TABLE [dbo].[Roles](
 	[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	[Name] [nvarchar](100) NOT NULL UNIQUE,
+	[Name] [nvarchar](100) NOT NULL,
 	[CreatedAt] [datetimeoffset](7) NOT NULL DEFAULT (sysutcdatetime()),
 	[UpdatedAt] [datetimeoffset](7) NULL,
 	[IsDeleted] [bit] NOT NULL DEFAULT (0)
 )
 GO
+CREATE UNIQUE INDEX [UX_Roles_Name] ON [dbo].[Roles]([Name]) WHERE [IsDeleted] = 0;
+GO
 
 CREATE TABLE [dbo].[Users](
 	[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	[UserName] [nvarchar](100) NOT NULL UNIQUE,
+	[UserName] [nvarchar](100) NOT NULL,
 	[Email] [nvarchar](256) NULL,
 	[PasswordHash] [nvarchar](max) NULL,
 	[FullName] [nvarchar](200) NULL,
@@ -25,6 +27,8 @@ CREATE TABLE [dbo].[Users](
 	[UpdatedAt] [datetimeoffset](7) NULL,
 	[IsDeleted] [bit] NOT NULL DEFAULT (0)
 )
+GO
+CREATE UNIQUE INDEX [UX_Users_UserName] ON [dbo].[Users]([UserName]) WHERE [IsDeleted] = 0;
 GO
 
 CREATE TABLE [dbo].[UserRoles](
@@ -39,12 +43,14 @@ GO
 /****** 2. Danh mục & Đối tác ******/
 CREATE TABLE [dbo].[Brands](
 	[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	[Name] [nvarchar](200) NOT NULL UNIQUE,
+	[Name] [nvarchar](200) NOT NULL,
 	[Description] [nvarchar](500) NULL,
 	[CreatedAt] [datetimeoffset](7) NOT NULL DEFAULT (sysutcdatetime()),
 	[UpdatedAt] [datetimeoffset](7) NULL,
 	[IsDeleted] [bit] NOT NULL DEFAULT (0)
 )
+GO
+CREATE UNIQUE INDEX [UX_Brands_Name] ON [dbo].[Brands]([Name]) WHERE [IsDeleted] = 0;
 GO
 
 CREATE TABLE [dbo].[ProductCategories](
@@ -76,7 +82,7 @@ CREATE TABLE [dbo].[Products](
 	[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
 	[CategoryId] [int] NULL,
 	[BrandId] [int] NULL,
-	[SKU] [nvarchar](100) NOT NULL UNIQUE,
+	[SKU] [nvarchar](100) NOT NULL,
 	[Name] [nvarchar](300) NOT NULL,
 	[Description] [nvarchar](max) NULL,
 	[Unit] [nvarchar](50) NULL, -- Đơn vị tính (Cái, Thùng, Kg...)
@@ -90,6 +96,8 @@ CREATE TABLE [dbo].[Products](
 	CONSTRAINT [FK_Product_Category] FOREIGN KEY([CategoryId]) REFERENCES [dbo].[ProductCategories] ([Id]),
 	CONSTRAINT [FK_Product_Brand] FOREIGN KEY([BrandId]) REFERENCES [dbo].[Brands] ([Id])
 )
+GO
+CREATE UNIQUE INDEX [UX_Products_SKU] ON [dbo].[Products]([SKU]) WHERE [IsDeleted] = 0;
 GO
 
 /****** 4. Khách hàng ******/
@@ -110,7 +118,7 @@ GO
 /****** 5. Mua hàng (Purchase Orders) ******/
 CREATE TABLE [dbo].[PurchaseOrders](
 	[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	[PONumber] [nvarchar](50) NOT NULL UNIQUE,
+	[PONumber] [nvarchar](50) NOT NULL,
 	[SupplierId] [int] NULL,
 	[OrderDate] [date] NULL,
 	[ExpectedDate] [date] NULL,
@@ -125,6 +133,8 @@ CREATE TABLE [dbo].[PurchaseOrders](
 	CONSTRAINT [FK_PO_Supplier] FOREIGN KEY([SupplierId]) REFERENCES [dbo].[Suppliers] ([Id]),
 	CONSTRAINT [FK_PO_User] FOREIGN KEY([CreatedBy]) REFERENCES [dbo].[Users] ([Id])
 )
+GO
+CREATE UNIQUE INDEX [UX_PurchaseOrders_PONumber] ON [dbo].[PurchaseOrders]([PONumber]) WHERE [IsDeleted] = 0;
 GO
 
 CREATE TABLE [dbo].[PurchaseOrderItems](
@@ -141,7 +151,7 @@ GO
 /****** 6. Bán hàng (Sales Orders) ******/
 CREATE TABLE [dbo].[SalesOrders](
 	[Id] [int] IDENTITY(1,1) NOT NULL PRIMARY KEY,
-	[OrderNumber] [nvarchar](50) NOT NULL UNIQUE,
+	[OrderNumber] [nvarchar](50) NOT NULL,
 	[CustomerId] [int] NULL,
 	[OrderDate] [date] NULL,
 	[Status] [nvarchar](50) NULL, -- NEW, SHIPPING, COMPLETED, CANCELLED
@@ -157,6 +167,8 @@ CREATE TABLE [dbo].[SalesOrders](
 	CONSTRAINT [FK_SO_Customer] FOREIGN KEY([CustomerId]) REFERENCES [dbo].[Customers] ([Id]),
 	CONSTRAINT [FK_SO_User] FOREIGN KEY([CreatedBy]) REFERENCES [dbo].[Users] ([Id])
 )
+GO
+CREATE UNIQUE INDEX [UX_SalesOrders_OrderNumber] ON [dbo].[SalesOrders]([OrderNumber]) WHERE [IsDeleted] = 0;
 GO
 
 CREATE TABLE [dbo].[SalesOrderItems](
@@ -347,3 +359,4 @@ BEGIN
     EXEC sp_executesql @Sql, N'@Id int', @Id;
 END
 GO
+

@@ -20,7 +20,8 @@ namespace MiniERP_API.Services
             _mapper = mapper;
         }
 
-        public IEnumerable<SalesOrderDto> GetAll() => _mapper.Map<IEnumerable<SalesOrderDto>>(_orderRepo.GetAll());
+        public IEnumerable<SalesOrderDto> GetAll(string status = null, int? customerId = null, System.DateTime? fromDate = null, System.DateTime? toDate = null) 
+            => _mapper.Map<IEnumerable<SalesOrderDto>>(_orderRepo.GetAll(status, customerId, fromDate, toDate));
         public SalesOrderDto GetById(int id) => _mapper.Map<SalesOrderDto>(_orderRepo.GetById(id));
 
         public int PlaceOrder(CreateSalesOrderDto dto)
@@ -36,6 +37,11 @@ namespace MiniERP_API.Services
 
             var order = _mapper.Map<SalesOrder>(dto);
             order.OrderNumber = "SO-" + DateTime.Now.Ticks.ToString().Substring(10);
+            
+            // Safety check for auto-generated OrderNumber
+            var existing = _orderRepo.GetByNumber(order.OrderNumber);
+            if (existing != null) order.OrderNumber += "-R"; // Simple collision avoidance
+
             order.TotalAmount = dto.Items.Sum(i => (i.UnitPrice - i.Discount) * i.Quantity);
 
             return _orderRepo.CreateOrder(order);

@@ -86,6 +86,60 @@ namespace MiniERP_API.Repositories
             }
         }
 
+        public Product GetBySku(string sku)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand(Queries.GetProductBySku, conn);
+                cmd.Parameters.AddWithValue("@SKU", sku);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read()) return MapProduct(reader);
+                }
+            }
+            return null;
+        }
+
+        public IEnumerable<Product> Search(string searchTerm, int? categoryId, int? brandId)
+        {
+            var products = new List<Product>();
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT * FROM Products WHERE IsDeleted = 0";
+                
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                    sql += " AND (Name LIKE @Term OR SKU LIKE @Term)";
+                
+                if (categoryId.HasValue)
+                    sql += " AND CategoryId = @CatId";
+                
+                if (brandId.HasValue)
+                    sql += " AND BrandId = @BrandId";
+
+                var cmd = new SqlCommand(sql, conn);
+                
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                    cmd.Parameters.AddWithValue("@Term", $"%{searchTerm}%");
+                
+                if (categoryId.HasValue)
+                    cmd.Parameters.AddWithValue("@CatId", categoryId.Value);
+                
+                if (brandId.HasValue)
+                    cmd.Parameters.AddWithValue("@BrandId", brandId.Value);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        products.Add(MapProduct(reader));
+                    }
+                }
+            }
+            return products;
+        }
+
         private void AddProductParameters(SqlCommand cmd, Product p)
         {
             cmd.Parameters.AddWithValue("@CategoryId", (object)p.CategoryId ?? DBNull.Value);

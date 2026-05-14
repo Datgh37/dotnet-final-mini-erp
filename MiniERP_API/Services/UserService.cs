@@ -13,8 +13,25 @@ namespace MiniERP_API.Services
         private readonly IMapper _mapper;
         public UserService(IUserRepository repo, IMapper mapper) { _repo = repo; _mapper = mapper; }
 
-        public IEnumerable<UserDto> GetAll() => _mapper.Map<IEnumerable<UserDto>>(_repo.GetAll());
-        public UserDto GetById(int id) => _mapper.Map<UserDto>(_repo.GetById(id));
+        public IEnumerable<UserDto> GetAll()
+        {
+            var users = _repo.GetAll();
+            var dtos = _mapper.Map<IEnumerable<UserDto>>(users);
+            foreach (var d in dtos)
+            {
+                d.Role = _repo.GetRoleName(d.Id);
+            }
+            return dtos;
+        }
+
+        public UserDto GetById(int id)
+        {
+            var user = _repo.GetById(id);
+            if (user == null) return null;
+            var dto = _mapper.Map<UserDto>(user);
+            dto.Role = _repo.GetRoleName(user.Id);
+            return dto;
+        }
 
         public void Update(int id, UserUpdateDto dto)
         {
@@ -25,6 +42,34 @@ namespace MiniERP_API.Services
                 user.FullName = dto.FullName;
                 _repo.Update(user);
             }
+        }
+
+        public int Create(RegisterRequest dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.UserName)) throw new System.Exception("Tên đăng nhập không được để trống.");
+            
+            var existing = _repo.GetByUserName(dto.UserName);
+            if (existing != null) throw new System.Exception($"Tên đăng nhập '{dto.UserName}' đã tồn tại.");
+
+            var user = new User
+            {
+                UserName = dto.UserName,
+                Email = dto.Email,
+                FullName = dto.FullName,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+            };
+
+            int userId = _repo.Add(user);
+            
+            // Gán role mặc định là Staff
+            int roleId = _repo.GetRoleIdByName("Staff");
+            
+            if (roleId > 0)
+            {
+                _repo.AssignRole(userId, roleId);
+            }
+
+            return userId;
         }
 
         public void Delete(int id) => _repo.Delete(id);

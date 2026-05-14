@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP_API.Models.DTOs;
 using MiniERP_API.Models.Entities;
@@ -5,6 +6,7 @@ using MiniERP_API.Services.Interfaces;
 
 namespace MiniERP_API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
@@ -13,7 +15,8 @@ namespace MiniERP_API.Controllers
         public ProductsController(IProductService service) => _service = service;
 
         [HttpGet]
-        public IActionResult GetAllProducts() => Ok(_service.GetActiveProducts());
+        public IActionResult GetAllProducts([FromQuery] string? searchTerm, [FromQuery] int? categoryId, [FromQuery] int? brandId) 
+            => Ok(_service.GetActiveProducts(searchTerm, categoryId, brandId));
 
         [HttpGet("{id}")]
         public IActionResult GetProductDetails(int id)

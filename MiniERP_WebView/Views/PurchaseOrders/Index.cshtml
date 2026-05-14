@@ -1,333 +1,202 @@
-﻿@{
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="mb-4">Purchase Orders</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Đơn mua hàng (Nhập kho)</h2>
+</div>
 
-<div class="card mb-3">
+<!-- Filters -->
+<div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <button type="button" class="btn btn-primary mb-3" data-coreui-toggle="modal" data-coreui-target="#AddPurchaseOrderModal">
-            Create New Order
-        </button>
-
-        <!-- Add Modal -->
-        <div class="modal fade" id="AddPurchaseOrderModal" tabindex="-1" aria-labelledby="AddPurchaseOrderModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="AddPurchaseOrderModalLabel">Create Purchase Order</h5>
-                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="addPurchaseOrderForm">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="addSupplierId" class="form-label">Supplier ID</label>
-                                    <input type="number" class="form-control" id="addSupplierId" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="addOrderDate" class="form-label">Order Date</label>
-                                    <input type="date" class="form-control" id="addOrderDate" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="addNotes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="addNotes" rows="3"></textarea>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" form="addPurchaseOrderForm">Save</button>
-                    </div>
-                </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold">Trạng thái</label>
+                <select class="form-select" id="filterStatus">
+                    <option value="">-- Tất cả --</option>
+                    <option value="PENDING">Chờ xử lý (PENDING)</option>
+                    <option value="RECEIVED">Đã nhập kho (RECEIVED)</option>
+                    <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+                </select>
             </div>
-        </div>
-
-        <!-- Edit Modal -->
-        <div class="modal fade" id="EditPurchaseOrderModal" tabindex="-1" aria-labelledby="EditPurchaseOrderModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="EditPurchaseOrderModalLabel">Edit Purchase Order</h5>
-                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="editPurchaseOrderForm">
-                            <div class="mb-3">
-                                <label for="editId" class="form-label">Order ID</label>
-                                <input type="number" class="form-control" id="editId" readonly>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editSupplierId" class="form-label">Supplier ID</label>
-                                    <input type="number" class="form-control" id="editSupplierId" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editOrderDate" class="form-label">Order Date</label>
-                                    <input type="date" class="form-control" id="editOrderDate" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="editStatus" class="form-label">Status</label>
-                                <input type="text" class="form-control" id="editStatus" readonly>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="editNotes" class="form-label">Notes</label>
-                                <textarea class="form-control" id="editNotes" rows="3"></textarea>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" form="editPurchaseOrderForm">Save</button>
-                    </div>
-                </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-primary w-100" onclick="loadPurchaseOrders()">Lọc</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <table class="table table-bordered table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Supplier ID</th>
-                    <th>Order Date</th>
-                    <th>Status</th>
-                    <th width="200">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="purchaseOrderTable"></tbody>
-        </table>
+<!-- Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead class="bg-body-tertiary">
+                    <tr>
+                        <th class="ps-4">Mã đơn</th>
+                        <th>Ngày lập</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="poTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- PO Detail Modal -->
+<div class="modal fade" id="PODetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết đơn mua #<span id="modalPONumber"></span></h5>
+                <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="text-body-secondary small">Nhà cung cấp:</label>
+                        <div id="modalSupplier" class="fw-bold text-success"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Ngày lập:</label>
+                        <div id="modalPODate"></div>
+                    </div>
+                </div>
+
+                <h6>Danh sách sản phẩm nhập</h6>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-end">Giá nhập</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalPOItemsTable"></tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">Tổng tiền nhập:</th>
+                            <th class="text-end" id="modalPOTotal"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div id="actionArea" class="mt-4 text-center d-none">
+                    <button class="btn btn-success px-4 me-2" onclick="receivePO()">Xác nhận nhập kho</button>
+                    <button class="btn btn-outline-danger px-4" onclick="cancelPO()">Hủy đơn</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    let selectedPurchaseOrderId = null;
-    let currentItems = [];
-
-    function toDateInputValue(date) {
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - (offset * 60 * 1000));
-        return localDate.toISOString().split('T')[0];
-    }
-
-    function getStatusClass(status) {
-        switch ((status || '').toLowerCase()) {
-            case 'received':
-                return 'bg-success';
-            case 'cancelled':
-                return 'bg-danger';
-            case 'pending':
-            default:
-                return 'bg-info';
-        }
-    }
+    let currentPOId = null;
 
     async function loadPurchaseOrders() {
+        const status = document.getElementById('filterStatus').value;
+        const params = new URLSearchParams();
+        if (status) params.append('status', status);
+
         try {
-            const response = await fetch('https://localhost:7279/api/purchase-orders');
-            const orders = await response.json();
+            let url = `${API_BASE}/purchase-orders`;
+            if (params.toString()) url += `?${params.toString()}`;
+            const response = await fetch(url);
+            if (!response.ok) return;
+            const data = await response.json();
 
-            let html = "";
-            orders.forEach(order => {
-                const orderDate = order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-US') : '';
-                const statusClass = getStatusClass(order.status);
+            window.renderTable('poTable', data, o => {
+                const date = new Date(o.orderDate).toLocaleDateString('vi-VN');
+                const total = o.totalAmount.toLocaleString('vi-VN');
+                let badgeClass = 'bg-secondary';
+                if(o.status === 'PENDING') badgeClass = 'bg-warning';
+                else if(o.status === 'RECEIVED') badgeClass = 'bg-success';
+                else if(o.status === 'CANCELLED') badgeClass = 'bg-danger';
 
-                html += `
+                return `
                     <tr>
-                        <td>${order.id ?? ''}</td>
-                        <td>${order.supplierId ?? ''}</td>
-                        <td>${orderDate}</td>
-                        <td><span class="badge ${statusClass}">${order.status || 'Pending'}</span></td>
-                        <td>
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-warning btn-edit"
-                                data-id="${order.id}"
-                                data-coreui-toggle="modal"
-                                data-coreui-target="#EditPurchaseOrderModal">
-                                Edit
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success" onclick="receiveOrder(${order.id})">Receive</button>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="cancelOrder(${order.id})">Cancel</button>
+                        <td class="ps-4 fw-bold">PO-${o.id}</td>
+                        <td>${date}</td>
+                        <td class="text-success fw-semibold">${o.supplierName || 'NCC ID: ' + o.supplierId}</td>
+                        <td class="fw-bold">${total} đ</td>
+                        <td><span class="badge ${badgeClass}">${o.status}</span></td>
+                        <td class="text-end pe-4">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewPODetails(${o.id})">Chi tiết</button>
                         </td>
                     </tr>
                 `;
             });
-
-            document.getElementById("purchaseOrderTable").innerHTML = html;
-        }
-        catch (error) {
-            console.log(error);
-            alert("Load purchase orders failed");
-        }
+        } catch (e) { console.error(e); }
     }
 
-    document.addEventListener("click", async function (e) {
-        const editButton = e.target.closest(".btn-edit");
-        if (!editButton) return;
-
-        const orderId = editButton.dataset.id;
-        selectedPurchaseOrderId = orderId;
-
+    async function viewPODetails(id) {
+        currentPOId = id;
         try {
-            const response = await fetch(`https://localhost:7279/api/purchase-orders/${orderId}`);
-            if (!response.ok) {
-                alert("Load order detail failed");
-                return;
-            }
+            const response = await fetch(`${API_BASE}/purchase-orders/${id}`);
+            const o = await response.json();
 
-            const order = await response.json();
-            currentItems = order.items || [];
+            document.getElementById('modalPONumber').innerText = o.id;
+            document.getElementById('modalSupplier').innerText = o.supplierName || 'NCC ID: ' + o.supplierId;
+            document.getElementById('modalPODate').innerText = new Date(o.orderDate).toLocaleString('vi-VN');
+            document.getElementById('modalPOTotal').innerText = o.totalAmount.toLocaleString('vi-VN') + ' đ';
 
-            document.getElementById("editId").value = order.id ?? "";
-            document.getElementById("editSupplierId").value = order.supplierId ?? "";
-            document.getElementById("editOrderDate").value = order.orderDate ? order.orderDate.split('T')[0] : "";
-            document.getElementById("editStatus").value = order.status ?? "";
-            document.getElementById("editNotes").value = order.notes ?? "";
-        } catch (error) {
-            console.log(error);
-            alert("Load order detail failed");
-        }
-    });
-
-    document.getElementById("addPurchaseOrderForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const order = {
-            supplierId: parseInt(document.getElementById("addSupplierId").value),
-            orderDate: document.getElementById("addOrderDate").value,
-            notes: document.getElementById("addNotes").value,
-            items: []
-        };
-
-        try {
-            const response = await fetch('https://localhost:7279/api/purchase-orders', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(order)
+            let itemsHtml = '';
+            o.items.forEach(item => {
+                itemsHtml += `
+                    <tr>
+                        <td>${item.productName || 'ID: ' + item.productId}</td>
+                        <td class="text-end">${item.unitPrice.toLocaleString()}</td>
+                        <td class="text-center">${item.quantity}</td>
+                        <td class="text-end">${(item.unitPrice * item.quantity).toLocaleString()}</td>
+                    </tr>
+                `;
             });
+            document.getElementById('modalPOItemsTable').innerHTML = itemsHtml;
 
-            if (response.ok) {
-                const modalEl = document.getElementById("AddPurchaseOrderModal");
-                const modal = coreui.Modal.getOrCreateInstance(modalEl);
-                modal.hide();
-
-                document.getElementById("addPurchaseOrderForm").reset();
-                document.getElementById("addOrderDate").value = toDateInputValue(new Date());
-
-                await loadPurchaseOrders();
-                alert('Purchase order created successfully!');
+            const actionArea = document.getElementById('actionArea');
+            if(o.status === 'PENDING') {
+                actionArea.classList.remove('d-none');
             } else {
-                const error = await response.text();
-                alert('Failed to create purchase order: ' + (error || response.statusText));
+                actionArea.classList.add('d-none');
             }
-        } catch (error) {
-            console.log(error);
-            alert('Error: ' + error.message);
-        }
-    });
 
-    document.getElementById("editPurchaseOrderForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
+            new coreui.Modal(document.getElementById('PODetailModal')).show();
+        } catch (e) { console.error(e); }
+    }
 
-        if (!selectedPurchaseOrderId) {
-            alert("No order selected");
-            return;
-        }
-
-        const order = {
-            id: parseInt(document.getElementById("editId").value),
-            supplierId: parseInt(document.getElementById("editSupplierId").value),
-            orderDate: document.getElementById("editOrderDate").value,
-            status: document.getElementById("editStatus").value,
-            notes: document.getElementById("editNotes").value,
-            items: currentItems
-        };
+    async function receivePO() {
+        if(!confirm("Xác nhận nhập kho các sản phẩm này?")) return;
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user.id || 1;
 
         try {
-            const response = await fetch(`https://localhost:7279/api/purchase-orders/${selectedPurchaseOrderId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(order)
+            const response = await fetch(`${API_BASE}/purchase-orders/${currentPOId}/receive?receivedBy=${userId}`, {
+                method: 'PATCH'
             });
-
-            if (response.ok) {
-                const modalEl = document.getElementById("EditPurchaseOrderModal");
-                const modal = coreui.Modal.getOrCreateInstance(modalEl);
-                modal.hide();
-
-                selectedPurchaseOrderId = null;
-                currentItems = [];
-
-                await loadPurchaseOrders();
-                alert('Purchase order updated successfully!');
-            } else {
-                const error = await response.text();
-                alert('Failed to update purchase order: ' + (error || response.statusText));
-            }
-        } catch (error) {
-            console.log(error);
-            alert('Error: ' + error.message);
-        }
-    });
-
-    async function receiveOrder(id) {
-        if (confirm('Confirm receiving this order?')) {
-            try {
-                const response = await fetch(`https://localhost:7279/api/purchase-orders/${id}/receive?receivedBy=1`, {
-                    method: 'PATCH'
-                });
-
-                if (response.ok) {
-                    alert('Order received successfully!');
-                    await loadPurchaseOrders();
-                } else {
-                    alert('Failed to receive order');
-                }
-            } catch (error) {
-                console.log(error);
-                alert('Error: ' + error.message);
-            }
-        }
+            await handleApiError(response);
+            coreui.Modal.getInstance(document.getElementById('PODetailModal')).hide();
+            showAlert("Đã nhập kho thành công!");
+            loadPurchaseOrders();
+        } catch (e) { console.error(e); }
     }
 
-    async function cancelOrder(id) {
-        if (confirm('Cancel this order?')) {
-            try {
-                const response = await fetch(`https://localhost:7279/api/purchase-orders/${id}/cancel`, {
-                    method: 'PATCH'
-                });
-
-                if (response.ok) {
-                    alert('Order cancelled successfully!');
-                    await loadPurchaseOrders();
-                } else {
-                    alert('Failed to cancel order');
-                }
-            } catch (error) {
-                console.log(error);
-                alert('Error: ' + error.message);
-            }
-        }
+    async function cancelPO() {
+        if(!confirm("Xác nhận hủy đơn mua hàng này?")) return;
+        try {
+            const response = await fetch(`${API_BASE}/purchase-orders/${currentPOId}/cancel`, {
+                method: 'PATCH'
+            });
+            await handleApiError(response);
+            coreui.Modal.getInstance(document.getElementById('PODetailModal')).hide();
+            showAlert("Đã hủy đơn mua hàng.");
+            loadPurchaseOrders();
+        } catch (e) { console.error(e); }
     }
 
-    document.getElementById("addOrderDate").value = toDateInputValue(new Date());
-    loadPurchaseOrders();
+    document.addEventListener('DOMContentLoaded', loadPurchaseOrders);
 </script>

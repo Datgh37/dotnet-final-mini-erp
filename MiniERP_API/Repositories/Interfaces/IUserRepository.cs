@@ -12,5 +12,8 @@ namespace MiniERP_API.Repositories.Interfaces
         void Update(User user);
         void Delete(int id);
         void ChangePassword(int id, string passwordHash);
+        void AssignRole(int userId, int roleId);
+        int GetRoleIdByName(string roleName);
+        string GetRoleName(int userId);
     }
 }

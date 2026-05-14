@@ -13,7 +13,11 @@ namespace MiniERP_API.Services
         private readonly IMapper _mapper;
         public CustomerService(ICustomerRepository repo, IMapper mapper) { _repo = repo; _mapper = mapper; }
 
-        public IEnumerable<CustomerDto> GetAll() => _mapper.Map<IEnumerable<CustomerDto>>(_repo.GetAll());
+        public IEnumerable<CustomerDto> GetAll(string searchTerm = null)
+        {
+            var customers = string.IsNullOrWhiteSpace(searchTerm) ? _repo.GetAll() : _repo.Search(searchTerm);
+            return _mapper.Map<IEnumerable<CustomerDto>>(customers);
+        }
         public CustomerDto GetById(int id) => _mapper.Map<CustomerDto>(_repo.GetById(id));
         public int Create(CustomerCreateUpdateDto dto)
         {

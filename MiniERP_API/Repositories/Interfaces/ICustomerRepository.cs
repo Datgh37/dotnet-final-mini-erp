@@ -10,5 +10,6 @@ namespace MiniERP_API.Repositories.Interfaces
         int Add(Customer customer);
         void Update(Customer customer);
         void Delete(int id);
+        IEnumerable<Customer> Search(string searchTerm);
     }
 }

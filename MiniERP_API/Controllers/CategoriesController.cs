@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP_API.Models.DTOs;
 using MiniERP_API.Models.Entities;
@@ -5,6 +6,7 @@ using MiniERP_API.Services.Interfaces;
 
 namespace MiniERP_API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class CategoriesController : ControllerBase

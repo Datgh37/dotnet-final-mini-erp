@@ -87,6 +87,36 @@ namespace MiniERP_API.Repositories
             cmd.ExecuteNonQuery();
         }
 
+        public void AssignRole(int userId, int roleId)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand(Queries.AssignRole, conn);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.Parameters.AddWithValue("@RoleId", roleId);
+            conn.Open();
+            cmd.ExecuteNonQuery();
+        }
+
+        public int GetRoleIdByName(string roleName)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand(Queries.GetRoleIdByName, conn);
+            cmd.Parameters.AddWithValue("@Name", roleName);
+            conn.Open();
+            var res = cmd.ExecuteScalar();
+            return res != null ? (int)res : 0;
+        }
+
+        public string GetRoleName(int userId)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand(Queries.GetUserRoleName, conn);
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            conn.Open();
+            var res = cmd.ExecuteScalar();
+            return res?.ToString() ?? "Customer";
+        }
+
         private User Map(SqlDataReader r) => new User
         {
             Id = (int)r["Id"], UserName = r["UserName"].ToString(), Email = r["Email"]?.ToString(),

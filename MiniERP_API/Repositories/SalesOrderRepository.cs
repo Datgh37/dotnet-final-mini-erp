@@ -19,11 +19,23 @@ namespace MiniERP_API.Repositories
             _cs = config.GetConnectionString("DefaultConnection");
         }
 
-        public IEnumerable<SalesOrder> GetAll()
+        public IEnumerable<SalesOrder> GetAll(string status = null, int? customerId = null, System.DateTime? fromDate = null, System.DateTime? toDate = null)
         {
             var list = new List<SalesOrder>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand(Queries.GetAllSalesOrders, conn);
+            string sql = "SELECT * FROM SalesOrders WHERE IsDeleted = 0";
+            
+            if (!string.IsNullOrWhiteSpace(status)) sql += " AND Status = @Status";
+            if (customerId.HasValue) sql += " AND CustomerId = @CustId";
+            if (fromDate.HasValue) sql += " AND OrderDate >= @From";
+            if (toDate.HasValue) sql += " AND OrderDate <= @To";
+
+            var cmd = new SqlCommand(sql, conn);
+            if (!string.IsNullOrWhiteSpace(status)) cmd.Parameters.AddWithValue("@Status", status);
+            if (customerId.HasValue) cmd.Parameters.AddWithValue("@CustId", customerId.Value);
+            if (fromDate.HasValue) cmd.Parameters.AddWithValue("@From", fromDate.Value);
+            if (toDate.HasValue) cmd.Parameters.AddWithValue("@To", toDate.Value);
+
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(MapOrder(r));
@@ -90,6 +102,16 @@ namespace MiniERP_API.Repositories
             cmd.Parameters.AddWithValue("@Status", status);
             conn.Open();
             cmd.ExecuteNonQuery();
+        }
+
+        public SalesOrder GetByNumber(string orderNumber)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand(Queries.GetSalesOrderByNumber, conn);
+            cmd.Parameters.AddWithValue("@Num", orderNumber);
+            conn.Open();
+            using var r = cmd.ExecuteReader();
+            return r.Read() ? MapOrder(r) : null;
         }
 
         private SalesOrder MapOrder(SqlDataReader r) => new SalesOrder

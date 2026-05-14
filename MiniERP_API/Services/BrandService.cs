@@ -18,14 +18,27 @@ namespace MiniERP_API.Services
         public int Create(BrandCreateUpdateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhãn hàng không được để trống.");
+            
+            var existing = _repo.GetByName(dto.Name);
+            if (existing != null) throw new System.Exception($"Tên nhãn hàng '{dto.Name}' đã tồn tại.");
+
             var brand = _mapper.Map<Brand>(dto);
             return _repo.Add(brand);
         }
+
         public void Update(int id, BrandCreateUpdateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhãn hàng không được để trống.");
+            
             var existing = _repo.GetById(id);
             if (existing == null) throw new System.Exception("Nhãn hàng không tồn tại.");
+
+            if (existing.Name != dto.Name)
+            {
+                var duplicate = _repo.GetByName(dto.Name);
+                if (duplicate != null) throw new System.Exception($"Tên nhãn hàng '{dto.Name}' đã bị trùng.");
+            }
+
             _mapper.Map(dto, existing);
             existing.Id = id;
             _repo.Update(existing);

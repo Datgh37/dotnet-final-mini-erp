@@ -65,6 +65,16 @@ namespace MiniERP_API.Repositories
             cmd.ExecuteNonQuery();
         }
 
+        public ProductCategory GetByName(string name)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand(Queries.GetCategoryByName, conn);
+            cmd.Parameters.AddWithValue("@Name", name);
+            conn.Open();
+            using var r = cmd.ExecuteReader();
+            return r.Read() ? Map(r) : null;
+        }
+
         private ProductCategory Map(SqlDataReader r) => new ProductCategory
         {
             Id = (int)r["Id"], Name = r["Name"].ToString(), ParentCategoryId = r["ParentCategoryId"] as int?,

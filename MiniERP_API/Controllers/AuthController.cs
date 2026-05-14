@@ -18,17 +18,6 @@ namespace MiniERP_API.Controllers
             catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
         }
 
-        [HttpPost("register")]
-        public IActionResult Register(RegisterRequest request)
-        {
-            try 
-            { 
-                _authService.Register(request); 
-                return Ok(new { message = "Đăng ký thành công." }); 
-            }
-            catch (System.Exception ex) { return BadRequest(new { message = ex.Message }); }
-        }
-
         [HttpPost("refresh-token")]
         public IActionResult RefreshToken(RefreshTokenRequest request)
         {

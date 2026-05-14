@@ -10,5 +10,6 @@ namespace MiniERP_API.Services.Interfaces
         void Update(int id, UserUpdateDto dto);
         void Delete(int id);
         void ChangePassword(int id, UserPasswordChangeDto dto);
+        int Create(RegisterRequest dto);
     }
 }

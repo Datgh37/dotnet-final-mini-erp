@@ -8,7 +8,7 @@ namespace MiniERP_API.Models.DTOs
         [Required(ErrorMessage = "Tên đăng nhập là bắt buộc.")]
         public string UserName { get; set; }
         
-        /// <example>Admin@123</example>
+        /// <example>admin@123</example>
         [Required(ErrorMessage = "Mật khẩu là bắt buộc.")]
         public string Password { get; set; }
     }

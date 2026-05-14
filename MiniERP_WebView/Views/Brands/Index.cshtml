@@ -1,243 +1,195 @@
-﻿@{
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="mb-4">Brands</h2>
-<div class="card mb-3">
-    <div class="card-body">
-        <!-- Add Modal -->
-        <!-- Trigger -->
-        <button type="button" class="btn btn-primary" data-coreui-toggle="modal" data-coreui-target="#AddBrandModal">
-            Add New Brand
-        </button>
-        <div class="modal fade" id="AddBrandModal" tabindex="-1" aria-labelledby="AddBrandModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="AddBrandModalLabel">Add New Brand</h5>
-                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-                    </div>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Quản lý Thương hiệu</h2>
+    <button class="btn btn-primary" data-coreui-toggle="modal" data-coreui-target="#BrandModal">
+        Thêm mới
+    </button>
+</div>
 
-                    <div class="modal-body">
-                        <form id="brandForm">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Brand Name</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" form="brandForm">Save</button>
-                    </div>
-                </div>
-            </div>
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-body-tertiary">
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Tên thương hiệu</th>
+                        <th>Mô tả</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="brandTable"></tbody>
+            </table>
         </div>
-        <!-- Edit Modal -->
-        <div class="modal fade" id="EditBrandModal" tabindex="-1" aria-labelledby="EditBrandModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="EditBrandModalLabel">Edit Brand</h5>
-                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-                    </div>
+    </div>
+</div>
 
-                    <div class="modal-body">
-                        <form id="editBrandForm">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Brand Name</label>
-                                <input type="text" class="form-control" id="editName" name="name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" form="editBrandForm">Save</button>
-                    </div>
+<!-- Brand Detail Modal -->
+<div class="modal fade" id="BrandDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-body-tertiary">
+                <h5 class="modal-title">Chi tiết thương hiệu</h5>
+                <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label class="text-body-secondary small d-block text-uppercase mb-1">Tên thương hiệu</label>
+                    <h3 id="detailBrandName" class="text-primary fw-bold"></h3>
                 </div>
+                <div class="mb-3">
+                    <label class="text-body-secondary small d-block text-uppercase mb-1">Mô tả</label>
+                    <p id="detailBrandDescription" class="bg-body-tertiary p-3 rounded border text-body"></p>
+                </div>
+                <div class="text-body-secondary small">ID hệ thống: <span id="detailBrandId"></span></div>
+            </div>
+            <div class="modal-footer bg-body-tertiary">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-info text-white" id="btnEditBrandFromDetail">Sửa</button>
             </div>
         </div>
     </div>
 </div>
-<div class="card">
-    <div class="card-body">
-        <table class="table table-bordered table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th width="150">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="brandTable"></tbody>
-        </table>
+
+<!-- Brand Modal -->
+<div class="modal fade" id="BrandModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form id="brandForm" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="BrandModalLabel">Thêm thương hiệu mới</h5>
+                <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editBrandId">
+                <div class="mb-3">
+                    <label class="form-label">Tên thương hiệu <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="brandName" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mô tả</label>
+                    <textarea class="form-control" id="brandDescription" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary">Lưu</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    let selectedBrandId = null;
-
     async function loadBrands() {
         try {
-            const response = await fetch('https://localhost:7279/api/Brands');
+            const response = await fetch(`${API_BASE}/Brands`);
+            if (!response.ok) return;
             const brands = await response.json();
-            let html = "";
 
-            brands.forEach(b => {
-                html += `
-                    <tr>
-                        <td>${b.id}</td>
-                        <td>${b.name || ''}</td>
-                        <td>${b.description || ''}</td>
-                        <td>
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-warning btn-edit"
-                                data-id="${b.id}"
-                                data-name="${b.name || ''}"
-                                data-description="${b.description || ''}"
-                                data-coreui-toggle="modal"
-                                data-coreui-target="#EditBrandModal">
-                                Edit
+            window.renderTable('brandTable', brands, b => `
+                <tr>
+                    <td class="ps-4 text-body-secondary">${b.id}</td>
+                    <td><span class="fw-semibold">${b.name}</span></td>
+                    <td class="text-body-secondary">${b.description || '-'}</td>
+                    <td class="text-end pe-4">
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-primary" onclick="viewBrandDetail(${b.id})" title="Xem chi tiết">
+                                <i class="cil-eye"></i> <span class="d-none d-lg-inline">Xem</span>
                             </button>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteBrand(${b.id})">Delete</button>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById("brandTable").innerHTML = html;
-        } catch (error) {
-            console.log(error);
-            alert("Load brands failed");
-        }
+                            <button class="btn btn-sm btn-info text-white" onclick="editBrand(${b.id}, '${b.name}', '${b.description || ''}')" title="Sửa">
+                                <i class="cil-pencil"></i> <span class="d-none d-lg-inline">Sửa</span>
+                            </button>
+                            <button class="btn btn-sm btn-danger text-white" onclick="deleteBrand(${b.id})" title="Xóa">
+                                <i class="cil-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `);
+        } catch (e) { console.error(e); }
     }
 
-    document.addEventListener("click", function (e) {
-        const editButton = e.target.closest(".btn-edit");
-        if (!editButton) return;
-
-        selectedBrandId = editButton.dataset.id;
-
-        document.getElementById("editName").value = editButton.dataset.name || "";
-        document.getElementById("editDescription").value = editButton.dataset.description || "";
-    });
-
-    document.getElementById("brandForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const brand = {
-            name: document.getElementById("name").value.trim(),
-            description: document.getElementById("description").value
-        };
-
+    async function viewBrandDetail(id) {
         try {
-            // Bỏ qua kiểm tra ở client, để cho API xử lý
-            const response = await fetch('https://localhost:7279/api/Brands', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(brand)
-            });
+            const response = await fetch(`${API_BASE}/Brands/${id}`);
+            const b = await response.json();
+            
+            document.getElementById('detailBrandName').innerText = b.name;
+            document.getElementById('detailBrandDescription').innerText = b.description || 'Không có mô tả.';
+            document.getElementById('detailBrandId').innerText = b.id;
+            
+            document.getElementById('btnEditBrandFromDetail').onclick = () => {
+                coreui.Modal.getInstance(document.getElementById('BrandDetailModal')).hide();
+                editBrand(b.id, b.name, b.description || '');
+            };
+            
+            new coreui.Modal(document.getElementById('BrandDetailModal')).show();
+        } catch (e) { console.error(e); }
+    }
 
-            if (response.ok) {
-                const modalEl = document.getElementById("AddBrandModal");
-                const modal = coreui.Modal.getInstance(modalEl);
-                if (modal) {
-                    modal.hide();
-                }
-                document.getElementById("brandForm").reset();
-                await loadBrands();
-                alert('Brand created successfully!');
-            }
-            else {
-                // *** THAY ĐỔI DUY NHẤT ĐỂ HIỂN THỊ THÔNG BÁO LỖI ***
-                // Lấy nội dung lỗi từ API và hiển thị nó
-                const errorData = await response.json();
-                const errorMessage = errorData.message || 'Failed to create brand';
-                alert(errorMessage);
-            }
-
-        } catch (error) {
-            console.log(error);
-            alert('Error: ' + error.message);
-        }
-    });
-
-    document.getElementById("editBrandForm").addEventListener("submit", async function (e) {
+    async function saveBrand(e) {
         e.preventDefault();
-
-        if (!selectedBrandId) {
-            alert("No brand selected");
+        const form = document.getElementById('brandForm');
+        
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
             return;
         }
 
-        const brand = {
-            id: parseInt(selectedBrandId),
-            name: document.getElementById("editName").value,
-            description: document.getElementById("editDescription").value
+        const id = document.getElementById('editBrandId').value;
+        const data = {
+            name: document.getElementById('brandName').value,
+            description: document.getElementById('brandDescription').value
         };
 
         try {
-            const response = await fetch(`https://localhost:7279/api/Brands/${selectedBrandId}`, {
-                method: 'PUT',
+            const url = id ? `${API_BASE}/Brands/${id}` : `${API_BASE}/Brands`;
+            const method = id ? 'PUT' : 'POST';
+            if(id) data.id = parseInt(id);
+            
+            const response = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(brand)
+                body: JSON.stringify(data)
             });
 
-            if (response.ok) {
-                const modalEl = document.getElementById("EditBrandModal");
-                const modal = coreui.Modal.getInstance(modalEl);
-                if (modal) {
-                    modal.hide();
-                }
-
-                selectedBrandId = null;
-                await loadBrands();
-                alert('Brand updated successfully!');
-            } else {
-                // Thêm xử lý lỗi tương tự cho form Edit
-                const errorData = await response.json();
-                const errorMessage = errorData.message || 'Failed to update brand';
-                alert(errorMessage);
-            }
-        } catch (error) {
-            console.log(error);
-            alert('Error: ' + error.message);
-        }
-    });
-
-    async function deleteBrand(id) {
-        if (confirm('Are you sure?')) {
-            try {
-                const response = await fetch(`https://localhost:7279/api/Brands/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    alert('Brand deleted successfully!');
-                    loadBrands();
-                } else {
-                    alert('Failed to delete brand');
-                }
-            } catch (error) {
-                console.log(error);
-                alert('Error: ' + error.message);
-            }
-        }
+            await handleApiError(response);
+            coreui.Modal.getInstance(document.getElementById('BrandModal')).hide();
+            showAlert(id ? "Cập nhật thành công!" : "Thêm mới thành công!");
+            loadBrands();
+        } catch (error) { console.error(error); }
     }
 
-    loadBrands();
+    function editBrand(id, name, desc) {
+        const form = document.getElementById('brandForm');
+        form.classList.remove('was-validated');
+        
+        document.getElementById('editBrandId').value = id;
+        document.getElementById('brandName').value = name;
+        document.getElementById('brandDescription').value = desc;
+        document.getElementById('BrandModalLabel').innerText = "Cập nhật thương hiệu";
+        new coreui.Modal(document.getElementById('BrandModal')).show();
+    }
+
+    async function deleteBrand(id) {
+        if (!confirm('Xác nhận xóa thương hiệu này?')) return;
+        try {
+            const response = await fetch(`${API_BASE}/Brands/${id}`, { method: 'DELETE' });
+            await handleApiError(response);
+            showAlert("Đã xóa thương hiệu!");
+            loadBrands();
+        } catch (error) { console.error(error); }
+    }
+
+    document.getElementById('BrandModal').addEventListener('hidden.coreui.modal', function () {
+        document.getElementById('brandForm').reset();
+        document.getElementById('editBrandId').value = '';
+        document.getElementById('BrandModalLabel').innerText = "Thêm thương hiệu mới";
+    });
+
+    document.getElementById('brandForm').addEventListener('submit', saveBrand);
+    document.addEventListener('DOMContentLoaded', loadBrands);
 </script>

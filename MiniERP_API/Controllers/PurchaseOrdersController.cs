@@ -1,10 +1,12 @@
 using System;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP_API.Models.DTOs;
 using MiniERP_API.Services.Interfaces;
 
 namespace MiniERP_API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/purchase-orders")]
     public class PurchaseOrdersController : ControllerBase
@@ -13,7 +15,7 @@ namespace MiniERP_API.Controllers
         public PurchaseOrdersController(IPurchaseOrderService service) => _service = service;
 
         [HttpGet]
-        public IActionResult GetAll() => Ok(_service.GetAll());
+        public IActionResult GetAll([FromQuery] string? status) => Ok(_service.GetAll(status));
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)

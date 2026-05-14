@@ -14,11 +14,16 @@ namespace MiniERP_API.Repositories
         private readonly string _cs;
         public PurchaseOrderRepository(IConfiguration config) => _cs = config.GetConnectionString("DefaultConnection");
 
-        public IEnumerable<PurchaseOrder> GetAll()
+        public IEnumerable<PurchaseOrder> GetAll(string status = null)
         {
             var list = new List<PurchaseOrder>();
             using var conn = new SqlConnection(_cs);
-            var cmd = new SqlCommand(Queries.GetAllPurchaseOrders, conn);
+            string sql = "SELECT * FROM PurchaseOrders WHERE IsDeleted = 0";
+            if (!string.IsNullOrWhiteSpace(status)) sql += " AND Status = @Status";
+            
+            var cmd = new SqlCommand(sql, conn);
+            if (!string.IsNullOrWhiteSpace(status)) cmd.Parameters.AddWithValue("@Status", status);
+
             conn.Open();
             using var r = cmd.ExecuteReader();
             while (r.Read()) list.Add(MapOrder(r));
@@ -110,6 +115,16 @@ namespace MiniERP_API.Repositories
             cmd.Parameters.AddWithValue("@Id", id);
             conn.Open();
             if (cmd.ExecuteNonQuery() == 0) throw new Exception("Đơn mua hàng không tồn tại hoặc đã được xử lý.");
+        }
+
+        public PurchaseOrder GetByNumber(string poNumber)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand(Queries.GetPurchaseOrderByNumber, conn);
+            cmd.Parameters.AddWithValue("@Num", poNumber);
+            conn.Open();
+            using var r = cmd.ExecuteReader();
+            return r.Read() ? MapOrder(r) : null;
         }
 
         private PurchaseOrder MapOrder(SqlDataReader r) => new PurchaseOrder

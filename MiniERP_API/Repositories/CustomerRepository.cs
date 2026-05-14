@@ -70,6 +70,24 @@ namespace MiniERP_API.Repositories
             cmd.ExecuteNonQuery();
         }
 
+        public IEnumerable<Customer> Search(string searchTerm)
+        {
+            var list = new List<Customer>();
+            using var conn = new SqlConnection(_cs);
+            string sql = "SELECT * FROM Customers WHERE IsDeleted = 0";
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                sql += " AND (Name LIKE @Term OR Email LIKE @Term OR Phone LIKE @Term)";
+            
+            var cmd = new SqlCommand(sql, conn);
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+                cmd.Parameters.AddWithValue("@Term", $"%{searchTerm}%");
+                
+            conn.Open();
+            using var r = cmd.ExecuteReader();
+            while (r.Read()) list.Add(Map(r));
+            return list;
+        }
+
         private Customer Map(SqlDataReader r) => new Customer
         {
             Id = (int)r["Id"], UserId = r["UserId"] as int?, Name = r["Name"].ToString(),

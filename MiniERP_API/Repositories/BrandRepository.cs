@@ -65,6 +65,16 @@ namespace MiniERP_API.Repositories
             cmd.ExecuteNonQuery();
         }
 
+        public Brand GetByName(string name)
+        {
+            using var conn = new SqlConnection(_cs);
+            var cmd = new SqlCommand(Queries.GetBrandByName, conn);
+            cmd.Parameters.AddWithValue("@Name", name);
+            conn.Open();
+            using var r = cmd.ExecuteReader();
+            return r.Read() ? Map(r) : null;
+        }
+
         private Brand Map(SqlDataReader r) => new Brand
         {
             Id = (int)r["Id"], Name = r["Name"].ToString(), Description = r["Description"]?.ToString(),

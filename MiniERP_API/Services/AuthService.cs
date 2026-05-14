@@ -4,6 +4,11 @@ using MiniERP_API.Models.DTOs;
 using MiniERP_API.Models.Entities;
 using MiniERP_API.Repositories.Interfaces;
 using MiniERP_API.Services.Interfaces;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace MiniERP_API.Services
 {
@@ -11,11 +16,13 @@ namespace MiniERP_API.Services
     {
         private readonly IUserRepository _userRepo;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config;
 
-        public AuthService(IUserRepository userRepo, IMapper mapper)
+        public AuthService(IUserRepository userRepo, IMapper mapper, IConfiguration config)
         {
             _userRepo = userRepo;
             _mapper = mapper;
+            _config = config;
         }
 
         public AuthResponse Login(LoginRequest request)
@@ -48,29 +55,40 @@ namespace MiniERP_API.Services
 
             if (!isValid) throw new Exception("Sai tên đăng nhập hoặc mật khẩu.");
 
+            var userDto = _mapper.Map<UserDto>(user);
+            var role = _userRepo.GetRoleName(user.Id);
+            userDto.Role = role;
+
             return new AuthResponse
             {
-                Token = "mock-jwt-token-" + Guid.NewGuid().ToString(),
-                RefreshToken = "mock-refresh-token-" + Guid.NewGuid().ToString(),
-                User = _mapper.Map<UserDto>(user)
+                Token = GenerateJwtToken(user, role),
+                RefreshToken = Guid.NewGuid().ToString(),
+                User = userDto
             };
         }
 
-        public void Register(RegisterRequest request)
+        private string GenerateJwtToken(User user, string role)
         {
-            var existing = _userRepo.GetByUserName(request.UserName);
-            if (existing != null) throw new Exception("Tên đăng nhập đã tồn tại.");
-
-            var user = new User
+            var jwtSettings = _config.GetSection("Jwt");
+            var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
+            
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                UserName = request.UserName,
-                Email = request.Email,
-                FullName = request.FullName,
-                // Băm mật khẩu bằng BCrypt trước khi lưu vào Database
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.Role, role)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Issuer = jwtSettings["Issuer"],
+                Audience = jwtSettings["Audience"],
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
-
-            _userRepo.Add(user);
+            
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         public AuthResponse RefreshToken(RefreshTokenRequest request)

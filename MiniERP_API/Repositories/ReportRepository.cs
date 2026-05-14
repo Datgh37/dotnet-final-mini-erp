@@ -26,8 +26,8 @@ namespace MiniERP_API.Repositories
                 list.Add(new
                 {
                     OrderDate = r["OrderDate"],
-                    TotalOrders = (int)r["TotalOrders"],
-                    DailyRevenue = (decimal)r["DailyRevenue"]
+                    TotalOrders = r["TotalOrders"] != DBNull.Value ? Convert.ToInt32(r["TotalOrders"]) : 0,
+                    DailyRevenue = r["DailyRevenue"] != DBNull.Value ? Convert.ToDecimal(r["DailyRevenue"]) : 0m
                 });
             return list;
         }

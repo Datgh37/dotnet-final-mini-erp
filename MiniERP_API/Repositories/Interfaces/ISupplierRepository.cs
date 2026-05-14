@@ -10,5 +10,7 @@ namespace MiniERP_API.Repositories.Interfaces
         int Add(Supplier supplier);
         void Update(Supplier supplier);
         void Delete(int id);
+        Supplier GetByName(string name);
+        IEnumerable<Supplier> Search(string searchTerm);
     }
 }

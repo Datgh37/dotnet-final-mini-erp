@@ -10,5 +10,6 @@ namespace MiniERP_API.Repositories.Interfaces
         int Add(Brand brand);
         void Update(Brand brand);
         void Delete(int id);
+        Brand GetByName(string name);
     }
 }

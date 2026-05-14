@@ -117,5 +117,58 @@ namespace MiniERP_API.Repositories
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public Supplier GetByName(string name)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                var cmd = new SqlCommand(Queries.GetSupplierByName, conn);
+                cmd.Parameters.AddWithValue("@Name", name);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return MapSupplier(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        public IEnumerable<Supplier> Search(string searchTerm)
+        {
+            var list = new List<Supplier>();
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                string sql = "SELECT * FROM Suppliers WHERE IsDeleted = 0";
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                    sql += " AND (Name LIKE @Term OR ContactPerson LIKE @Term)";
+                
+                var cmd = new SqlCommand(sql, conn);
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                    cmd.Parameters.AddWithValue("@Term", $"%{searchTerm}%");
+                
+                conn.Open();
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read()) list.Add(MapSupplier(reader));
+            }
+            return list;
+        }
+
+        private Supplier MapSupplier(SqlDataReader reader)
+        {
+            return new Supplier {
+                Id = (int)reader["Id"],
+                Name = reader["Name"].ToString(),
+                ContactPerson = reader["ContactPerson"].ToString(),
+                Phone = reader["Phone"].ToString(),
+                Email = reader["Email"].ToString(),
+                Address = reader["Address"].ToString(),
+                CreatedAt = (DateTimeOffset)reader["CreatedAt"],
+                UpdatedAt = reader["UpdatedAt"] == DBNull.Value ? null : (DateTimeOffset?)reader["UpdatedAt"],
+                IsDeleted = (bool)reader["IsDeleted"]
+            };
+        }
     }
 }

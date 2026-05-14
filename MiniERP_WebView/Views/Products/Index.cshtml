@@ -1,385 +1,381 @@
-﻿@{
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="mb-4">Products</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Danh sách Sản phẩm</h2>
+    <button class="btn btn-primary" onclick="openCreateModal()">Thêm sản phẩm</button>
+</div>
 
-<div class="card mb-3">
+<!-- Search & Filter Bar -->
+<div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <button type="button" class="btn btn-primary" data-coreui-toggle="modal" data-coreui-target="#AddProductModal">
-            Add New Product
-        </button>
-
-        <!-- Add Modal -->
-        <div class="modal fade" id="AddProductModal" tabindex="-1" aria-labelledby="AddProductModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="AddProductModalLabel">Add New Product</h5>
-                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="addProductForm">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="addCategoryId" class="form-label">Category ID</label>
-                                    <input type="number" class="form-control" id="addCategoryId" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="addBrandId" class="form-label">Brand ID</label>
-                                    <input type="number" class="form-control" id="addBrandId" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="addSku" class="form-label">SKU</label>
-                                    <input type="text" class="form-control" id="addSku" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="addName" class="form-label">Product Name</label>
-                                    <input type="text" class="form-control" id="addName" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="addDescription" class="form-label">Description</label>
-                                <textarea class="form-control" id="addDescription" rows="3" required></textarea>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="addUnit" class="form-label">Unit</label>
-                                    <input type="text" class="form-control" id="addUnit" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="addCostPrice" class="form-label">Cost Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="addCostPrice" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="addRetailPrice" class="form-label">Retail Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="addRetailPrice" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="addStockQuantity" class="form-label">Stock Quantity</label>
-                                    <input type="number" class="form-control" id="addStockQuantity" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="addImageUrl" class="form-label">Image URL</label>
-                                <input type="text" class="form-control" id="addImageUrl">
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" form="addProductForm">Save</button>
-                    </div>
-                </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="filterSearch" placeholder="Tìm tên hoặc SKU...">
             </div>
-        </div>
-
-        <!-- Edit Modal -->
-        <div class="modal fade" id="EditProductModal" tabindex="-1" aria-labelledby="EditProductModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="EditProductModalLabel">Edit Product</h5>
-                        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <form id="editProductForm">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editId" class="form-label">Product ID</label>
-                                    <input type="number" class="form-control" id="editId" readonly>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editCategoryId" class="form-label">Category ID</label>
-                                    <input type="number" class="form-control" id="editCategoryId" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editBrandId" class="form-label">Brand ID</label>
-                                    <input type="number" class="form-control" id="editBrandId" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editSku" class="form-label">SKU</label>
-                                    <input type="text" class="form-control" id="editSku" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editName" class="form-label">Product Name</label>
-                                    <input type="text" class="form-control" id="editName" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editUnit" class="form-label">Unit</label>
-                                    <input type="text" class="form-control" id="editUnit" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="editDescription" class="form-label">Description</label>
-                                <textarea class="form-control" id="editDescription" rows="3" required></textarea>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editCostPrice" class="form-label">Cost Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="editCostPrice" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editRetailPrice" class="form-label">Retail Price</label>
-                                    <input type="number" step="0.01" class="form-control" id="editRetailPrice" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="editStockQuantity" class="form-label">Stock Quantity</label>
-                                    <input type="number" class="form-control" id="editStockQuantity" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="editImageUrl" class="form-label">Image URL</label>
-                                    <input type="text" class="form-control" id="editImageUrl">
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" form="editProductForm">Save</button>
-                    </div>
-                </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filterCategory"></select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filterBrand"></select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-info w-100" onclick="loadProducts()">Lọc</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <table class="table table-bordered table-hover">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Category ID</th>
-                    <th>Brand ID</th>
-                    <th>SKU</th>
-                    <th>Name</th>
-                    <th>Unit</th>
-                    <th>Description</th>
-                    <th>Cost Price</th>
-                    <th>Retail Price</th>
-                    <th>Stock</th>
-                    <th width="200">Image</th>
-                    <th width="150">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="productTable"></tbody>
-        </table>
+<!-- Products Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-nowrap">
+                    <tr>
+                        <th class="ps-4">SKU</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Thương hiệu</th>
+                        <th class="text-end">Giá bán</th>
+                        <th class="text-center">Tồn kho</th>
+                        <th class="text-end pe-4">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="productTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal fade" id="ProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="productForm" class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ProductModalLabel">Sản phẩm</h5>
+                <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mã SKU <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="sku" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Danh mục</label>
+                        <select class="form-select" id="categoryId"></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Thương hiệu</label>
+                        <select class="form-select" id="brandId"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Đơn vị</label>
+                        <input type="text" class="form-control" id="unit" placeholder="Cái, Bộ...">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Giá vốn</label>
+                        <input type="number" class="form-control" id="costPrice" value="0">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Giá bán</label>
+                        <input type="number" class="form-control" id="retailPrice" value="0">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Link ảnh (URL)</label>
+                        <input type="text" class="form-control" id="imageUrl">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Hủy</button>
+                <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Product Detail Modal -->
+<div class="modal fade" id="ProductDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-body-tertiary">
+                <h5 class="modal-title">Chi tiết sản phẩm</h5>
+                <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-5 text-center mb-3">
+                        <img id="detailImage" src="" class="img-fluid rounded shadow-sm border w-100" style="max-height: 300px; object-fit: contain; display: none;">
+                        <div id="detailNoImage" class="bg-body-tertiary d-flex align-items-center justify-content-center rounded border w-100" style="height: 250px;">
+                            <div class="text-center">
+                                <i class="cil-image text-body-secondary fs-1 d-block mb-2"></i>
+                                <span class="text-body-secondary small">Không có hình ảnh</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7">
+                        <h3 id="detailName" class="text-primary mb-1"></h3>
+                        <div id="detailSKU" class="text-body-secondary fw-bold mb-3"></div>
+                        <div class="row g-4">
+                            <div class="col-6">
+                                <label class="text-body-secondary small d-block text-uppercase">Danh mục</label>
+                                <div id="detailCategory" class="fw-bold text-body"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-body-secondary small d-block text-uppercase">Thương hiệu</label>
+                                <div id="detailBrand" class="fw-bold text-body"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-body-secondary small d-block text-uppercase">Giá vốn</label>
+                                <div id="detailCost" class="fw-bold text-danger fs-5"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-body-secondary small d-block text-uppercase">Giá bán lẻ</label>
+                                <div id="detailRetail" class="fw-bold text-success fs-5"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-body-secondary small d-block text-uppercase">Đơn vị</label>
+                                <div id="detailUnit" class="fw-bold text-body"></div>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-body-secondary small d-block text-uppercase">Tồn kho hiện tại</label>
+                                <div id="detailStock"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="text-body-secondary small d-block text-uppercase mb-1">Mô tả sản phẩm</label>
+                    <div id="detailDescription" class="p-3 bg-body-tertiary rounded border small text-body" style="min-height: 80px;"></div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top d-flex justify-content-between text-body-secondary small">
+                    <div>Ngày tạo: <span id="detailCreatedAt" class="fw-semibold"></span></div>
+                    <div>Cập nhật: <span id="detailUpdatedAt" class="fw-semibold"></span></div>
+                </div>
+            </div>
+            <div class="modal-footer bg-body-tertiary">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-info" id="btnEditFromDetail">Sửa sản phẩm</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    let selectedProductId = null;
+    let categories = [];
+    let brands = [];
+
+    async function init() {
+        categories = await populateSelect('filterCategory', 'Categories', '-- Tất cả danh mục --');
+        brands = await populateSelect('filterBrand', 'Brands', '-- Tất cả thương hiệu --');
+        
+        await populateSelect('categoryId', 'Categories');
+        await populateSelect('brandId', 'Brands');
+        
+        loadProducts();
+    }
 
     async function loadProducts() {
-        try {
-            const response = await fetch('https://localhost:7279/api/Products');
-            const products = await response.json();
+        const term = document.getElementById('filterSearch').value;
+        const catId = document.getElementById('filterCategory').value;
+        const bId = document.getElementById('filterBrand').value;
 
-            let html = "";
-            products.forEach(p => {
-                html += `
+        const params = new URLSearchParams();
+        if (term && term.trim()) params.append('searchTerm', term.trim());
+        if (catId && catId !== "") params.append('categoryId', catId);
+        if (bId && bId !== "") params.append('brandId', bId);
+
+        try {
+            let url = `${API_BASE}/Products`;
+            const qs = params.toString();
+            if (qs) url += `?${qs}`;
+            const response = await fetch(url);
+            if (!response.ok) return;
+            const data = await response.json();
+
+            window.renderTable('productTable', data, p => {
+                const cat = categories.find(c => c.id === p.categoryId)?.name || '-';
+                const brand = brands.find(b => b.id === p.brandId)?.name || '-';
+                
+                return `
                     <tr>
-                        <td>${p.id}</td>
-                        <td>${p.categoryId ?? ''}</td>
-                        <td>${p.brandId ?? ''}</td>
-                        <td>${p.sku || ''}</td>
-                        <td>${p.name || ''}</td>
-                        <td>${p.unit || ''}</td>
-                        <td>${p.description || ''}</td>
-                        <td>${p.costPrice ?? ''}</td>
-                        <td>${p.retailPrice ?? ''}</td>
-                        <td>${p.stockQuantity ?? ''}</td>
+                        <td class="ps-4 text-muted small">${p.sku}</td>
                         <td>
-                            <img src="${p.imageUrl || ''}"
-                                 width="60"
-                                 height="60"
-                                 style="object-fit:cover;border-radius:8px;"
-                                 onerror="this.src='https://via.placeholder.com/60?text=No+Image'"/>
+                            <div class="d-flex align-items-center">
+                                ${p.imageUrl ? `<img src="${p.imageUrl}" class="rounded me-2" width="32" height="32" style="object-fit: cover;">` : ''}
+                                <span class="fw-semibold">${p.name}</span>
+                            </div>
                         </td>
-                        <td>
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-warning btn-edit"
-                                data-id="${p.id}"
-                                data-categoryid="${p.categoryId ?? ''}"
-                                data-brandid="${p.brandId ?? ''}"
-                                data-sku="${p.sku || ''}"
-                                data-name="${p.name || ''}"
-                                data-description="${p.description || ''}"
-                                data-unit="${p.unit || ''}"
-                                data-costprice="${p.costPrice ?? ''}"
-                                data-retailprice="${p.retailPrice ?? ''}"
-                                data-stockquantity="${p.stockQuantity ?? ''}"
-                                data-imageurl="${p.imageUrl || ''}"
-                                data-coreui-toggle="modal"
-                                data-coreui-target="#EditProductModal">
-                                Edit
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">Delete</button>
+                        <td><span class="badge bg-light text-dark">${cat}</span></td>
+                        <td>${brand}</td>
+                        <td class="text-end">${p.retailPrice.toLocaleString()}</td>
+                        <td class="text-center">
+                            <span class="badge ${p.stockQuantity <= 5 ? 'bg-danger' : 'bg-success'}">${p.stockQuantity}</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-primary" onclick="viewProductDetail(${p.id})" title="Xem chi tiết">
+                                    <i class="cil-eye"></i> <span class="d-none d-lg-inline">Xem</span>
+                                </button>
+                                <button class="btn btn-sm btn-info text-white" onclick="openEditModal(${p.id})" title="Sửa">
+                                    <i class="cil-pencil"></i> <span class="d-none d-lg-inline">Sửa</span>
+                                </button>
+                                <button class="btn btn-sm btn-danger text-white" onclick="deleteProduct(${p.id})" title="Xóa">
+                                    <i class="cil-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             });
-
-            document.getElementById("productTable").innerHTML = html;
-        }
-        catch (error) {
-            console.log(error);
-            alert("Load products failed");
-        }
+        } catch (e) { console.error(e); }
     }
 
-    document.addEventListener("click", function (e) {
-        const editButton = e.target.closest(".btn-edit");
-        if (!editButton) return;
+    function openCreateModal() {
+        const form = document.getElementById('productForm');
+        form.reset();
+        form.classList.remove('was-validated');
+        document.getElementById('editId').value = '';
+        document.getElementById('ProductModalLabel').innerText = "Thêm sản phẩm mới";
+        new coreui.Modal(document.getElementById('ProductModal')).show();
+    }
 
-        selectedProductId = editButton.dataset.id;
-
-        document.getElementById("editId").value = editButton.dataset.id || "";
-        document.getElementById("editCategoryId").value = editButton.dataset.categoryid || "";
-        document.getElementById("editBrandId").value = editButton.dataset.brandid || "";
-        document.getElementById("editSku").value = editButton.dataset.sku || "";
-        document.getElementById("editName").value = editButton.dataset.name || "";
-        document.getElementById("editDescription").value = editButton.dataset.description || "";
-        document.getElementById("editUnit").value = editButton.dataset.unit || "";
-        document.getElementById("editCostPrice").value = editButton.dataset.costprice || "";
-        document.getElementById("editRetailPrice").value = editButton.dataset.retailprice || "";
-        document.getElementById("editStockQuantity").value = editButton.dataset.stockquantity || "";
-        document.getElementById("editImageUrl").value = editButton.dataset.imageurl || "";
-    });
-
-    document.getElementById("addProductForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const product = {
-            categoryId: parseInt(document.getElementById("addCategoryId").value),
-            brandId: parseInt(document.getElementById("addBrandId").value),
-            sku: document.getElementById("addSku").value,
-            name: document.getElementById("addName").value,
-            description: document.getElementById("addDescription").value,
-            unit: document.getElementById("addUnit").value,
-            costPrice: parseFloat(document.getElementById("addCostPrice").value),
-            retailPrice: parseFloat(document.getElementById("addRetailPrice").value),
-            stockQuantity: parseInt(document.getElementById("addStockQuantity").value),
-            imageUrl: document.getElementById("addImageUrl").value
-        };
-
+    async function openEditModal(id) {
         try {
-            const response = await fetch('https://localhost:7279/api/Products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(product)
-            });
+            const response = await fetch(`${API_BASE}/Products/${id}`);
+            const p = await response.json();
+            
+            const form = document.getElementById('productForm');
+            form.classList.remove('was-validated');
 
-            if (response.ok) {
-                const modalEl = document.getElementById("AddProductModal");
-                const modal = coreui.Modal.getOrCreateInstance(modalEl);
-                modal.hide();
+            document.getElementById('editId').value = p.id;
+            document.getElementById('name').value = p.name;
+            document.getElementById('sku').value = p.sku;
+            document.getElementById('categoryId').value = p.categoryId || '';
+            document.getElementById('brandId').value = p.brandId || '';
+            document.getElementById('unit').value = p.unit || '';
+            document.getElementById('costPrice').value = p.costPrice;
+            document.getElementById('retailPrice').value = p.retailPrice;
+            document.getElementById('description').value = p.description || '';
+            document.getElementById('imageUrl').value = p.imageUrl || '';
+            
+            document.getElementById('ProductModalLabel').innerText = "Chỉnh sửa sản phẩm";
+            
+            const detailModalEl = document.getElementById('ProductDetailModal');
+            const detailModal = coreui.Modal.getInstance(detailModalEl);
+            if (detailModal) detailModal.hide();
+            
+            new coreui.Modal(document.getElementById('ProductModal')).show();
+        } catch (e) { console.error(e); }
+    }
 
-                document.getElementById("addProductForm").reset();
-                await loadProducts();
-                alert('Product created successfully!');
+    async function viewProductDetail(id) {
+        try {
+            const response = await fetch(`${API_BASE}/Products/${id}`);
+            const p = await response.json();
+            
+            const cat = categories.find(c => c.id === p.categoryId)?.name || '-';
+            const brand = brands.find(b => b.id === p.brandId)?.name || '-';
+            
+            document.getElementById('detailName').innerText = p.name;
+            document.getElementById('detailSKU').innerText = `SKU: ${p.sku}`;
+            document.getElementById('detailCategory').innerText = cat;
+            document.getElementById('detailBrand').innerText = brand;
+            document.getElementById('detailCost').innerText = p.costPrice.toLocaleString() + ' đ';
+            document.getElementById('detailRetail').innerText = p.retailPrice.toLocaleString() + ' đ';
+            document.getElementById('detailUnit').innerText = p.unit || '-';
+            
+            const stockEl = document.getElementById('detailStock');
+            stockEl.innerText = p.stockQuantity;
+            stockEl.className = `badge fs-6 mt-1 ${p.stockQuantity <= 5 ? 'bg-danger text-white' : 'bg-success text-white'}`;
+            
+            document.getElementById('detailDescription').innerText = p.description || 'Không có mô tả.';
+            
+            const imgEl = document.getElementById('detailImage');
+            const noImgEl = document.getElementById('detailNoImage');
+            if (p.imageUrl) {
+                imgEl.src = p.imageUrl;
+                imgEl.style.display = 'block';
+                noImgEl.style.display = 'none';
             } else {
-                const error = await response.text();
-                alert('Failed to create product: ' + error);
+                imgEl.style.display = 'none';
+                noImgEl.style.display = 'flex';
             }
-        } catch (error) {
-            console.log(error);
-            alert('Error: ' + error.message);
-        }
-    });
+            
+            document.getElementById('detailCreatedAt').innerText = new Date(p.createdAt).toLocaleString('vi-VN');
+            document.getElementById('detailUpdatedAt').innerText = p.updatedAt ? new Date(p.updatedAt).toLocaleString('vi-VN') : 'Chưa có';
+            
+            document.getElementById('btnEditFromDetail').onclick = () => openEditModal(p.id);
+            
+            new coreui.Modal(document.getElementById('ProductDetailModal')).show();
+        } catch (e) { console.error(e); }
+    }
 
-    document.getElementById("editProductForm").addEventListener("submit", async function (e) {
+    async function saveProduct(e) {
         e.preventDefault();
-
-        if (!selectedProductId) {
-            alert("No product selected");
+        const form = document.getElementById('productForm');
+        
+        if (!form.checkValidity()) {
+            e.stopPropagation();
+            form.classList.add('was-validated');
             return;
         }
 
-        const product = {
-            id: parseInt(selectedProductId),
-            categoryId: parseInt(document.getElementById("editCategoryId").value),
-            brandId: parseInt(document.getElementById("editBrandId").value),
-            sku: document.getElementById("editSku").value,
-            name: document.getElementById("editName").value,
-            description: document.getElementById("editDescription").value,
-            unit: document.getElementById("editUnit").value,
-            costPrice: parseFloat(document.getElementById("editCostPrice").value),
-            retailPrice: parseFloat(document.getElementById("editRetailPrice").value),
-            stockQuantity: parseInt(document.getElementById("editStockQuantity").value),
-            imageUrl: document.getElementById("editImageUrl").value
+        const id = document.getElementById('editId').value;
+        const data = {
+            name: document.getElementById('name').value,
+            sku: document.getElementById('sku').value,
+            categoryId: document.getElementById('categoryId').value ? parseInt(document.getElementById('categoryId').value) : null,
+            brandId: document.getElementById('brandId').value ? parseInt(document.getElementById('brandId').value) : null,
+            unit: document.getElementById('unit').value,
+            costPrice: parseFloat(document.getElementById('costPrice').value),
+            retailPrice: parseFloat(document.getElementById('retailPrice').value),
+            description: document.getElementById('description').value,
+            imageUrl: document.getElementById('imageUrl').value,
+            stockQuantity: 0 
         };
 
         try {
-            const response = await fetch(`https://localhost:7279/api/Products/${selectedProductId}`, {
-                method: 'PUT',
+            const url = id ? `${API_BASE}/Products/${id}` : `${API_BASE}/Products`;
+            const method = id ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(product)
+                body: JSON.stringify(data)
             });
 
-            if (response.ok) {
-                const modalEl = document.getElementById("EditProductModal");
-                const modal = coreui.Modal.getOrCreateInstance(modalEl);
-                modal.hide();
-
-                selectedProductId = null;
-                await loadProducts();
-                alert('Product updated successfully!');
-            } else {
-                const error = await response.text();
-                alert('Failed to update product: ' + error);
-            }
-        } catch (error) {
-            console.log(error);
-            alert('Error: ' + error.message);
-        }
-    });
-
-    async function deleteProduct(id) {
-        if (confirm('Are you sure you want to delete this product?')) {
-            try {
-                const response = await fetch(`https://localhost:7279/api/Products/${id}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    alert('Product deleted successfully!');
-                    loadProducts();
-                } else {
-                    alert('Failed to delete product');
-                }
-            } catch (error) {
-                console.log(error);
-                alert('Error: ' + error.message);
-            }
-        }
+            await handleApiError(response);
+            coreui.Modal.getInstance(document.getElementById('ProductModal')).hide();
+            showAlert(id ? "Cập nhật sản phẩm thành công!" : "Thêm sản phẩm thành công!");
+            loadProducts();
+        } catch (error) { console.error(error); }
     }
 
-    loadProducts();
+    async function deleteProduct(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
+        try {
+            const response = await fetch(`${API_BASE}/Products/${id}`, { method: 'DELETE' });
+            await handleApiError(response);
+            showAlert("Đã xóa sản phẩm thành công!");
+            loadProducts();
+        } catch (error) { console.error(error); }
+    }
+
+    document.getElementById('productForm').addEventListener('submit', saveProduct);
+    document.addEventListener('DOMContentLoaded', init);
 </script>

@@ -6,7 +6,7 @@ namespace MiniERP_API.Services.Interfaces
 {
     public interface IPurchaseOrderService
     {
-        IEnumerable<PurchaseOrderDto> GetAll();
+        IEnumerable<PurchaseOrderDto> GetAll(string status = null);
         PurchaseOrderDto GetById(int id);
         int CreateOrder(CreatePurchaseOrderDto dto);
         void ReceiveOrder(int id, DateTime receivedDate, int receivedBy);

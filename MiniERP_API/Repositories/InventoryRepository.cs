@@ -55,8 +55,9 @@ namespace MiniERP_API.Repositories
                 // 2. Ghi nhật ký
                 var cmd2 = new SqlCommand(Queries.InsertStockMovement, conn, tran);
                 cmd2.Parameters.AddWithValue("@ProductId", productId);
+                cmd2.Parameters.AddWithValue("@MovementType", "ADJUSTMENT");
                 cmd2.Parameters.AddWithValue("@Qty", quantity);
-                cmd2.Parameters.AddWithValue("@Reason", (object)reason ?? DBNull.Value);
+                cmd2.Parameters.AddWithValue("@Reference", (object)reason ?? DBNull.Value);
                 cmd2.Parameters.AddWithValue("@CreatedBy", (object)createdBy ?? DBNull.Value);
                 cmd2.ExecuteNonQuery();
 

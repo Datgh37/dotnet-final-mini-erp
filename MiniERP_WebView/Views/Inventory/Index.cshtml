@@ -1,247 +1,151 @@
-﻿@{
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2 class="mb-4">Inventory Management</h2>
+<h2 class="mb-4">Lịch sử biến động Kho</h2>
 
-<!-- Search Section -->
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5>Search Stock Movements</h5>
-            </div>
+<div class="row mb-4 g-4">
+    <!-- Filter Card -->
+    <div class="col-md-7">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 fw-bold">Tra cứu lịch sử</div>
             <div class="card-body">
-                <div class="mb-3">
-                    <label for="searchProductId" class="form-label">Product ID (Optional)</label>
-                    <input type="number" class="form-control" id="searchProductId" placeholder="Leave empty for all">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">Sản phẩm</label>
+                        <select class="form-select" id="filterProduct"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Loại biến động</label>
+                        <select class="form-select" id="filterType">
+                            <option value="">-- Tất cả --</option>
+                            <option value="IN">Nhập kho (IN)</option>
+                            <option value="OUT">Xuất kho (OUT)</option>
+                            <option value="ADJUSTMENT">Điều chỉnh (ADJUSTMENT)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-primary w-100" onclick="loadMovements()">Lọc</button>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label for="searchMovementType" class="form-label">Movement Type</label>
-                    <select class="form-control" id="searchMovementType">
-                        <option value="">All</option>
-                        <option value="IN">In</option>
-                        <option value="OUT">Out</option>
-                        <option value="ADJUSTMENT">Adjustment</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" onclick="loadMovements()">Search</button>
             </div>
         </div>
     </div>
 
-    <!-- Adjust Stock Section -->
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5>Adjust Stock</h5>
-            </div>
-            <div class="card-body">
-                <form id="adjustmentForm">
-                    <div class="mb-3">
-                        <label for="adjustProductId" class="form-label">Product ID *</label>
-                        <input type="number" class="form-control" id="adjustProductId" name="productId" required>
+    <!-- Quick Adjust Card -->
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
+            <div class="card-header bg-white py-3 fw-bold">Điều chỉnh nhanh</div>
+            <form id="adjustForm" class="card-body">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <select class="form-select" id="adjustProduct" required></select>
                     </div>
-                    <div class="mb-3">
-                        <label for="adjustQuantity" class="form-label">Quantity (+ or -) *</label>
-                        <input type="number" class="form-control" id="adjustQuantity" name="quantity" required>
+                    <div class="col-md-4">
+                        <input type="number" class="form-control" id="adjustQty" placeholder="SL (+/-)" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="adjustReason" class="form-label">Reason *</label>
-                        <input type="text" class="form-control" id="adjustReason" name="reason" placeholder="e.g., Inventory correction, Damaged, etc." required>
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" id="adjustReason" placeholder="Lý do điều chỉnh..." required>
                     </div>
-                    <button type="submit" class="btn btn-success">Adjust Stock</button>
-                    <button type="reset" class="btn btn-secondary">Clear</button>
-                </form>
-            </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-warning w-100 fw-bold">Cập nhật kho</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Stock Movements Table -->
-<div class="card">
-    <div class="card-body">
-        <h5 class="card-title">Stock Movements History</h5>
-        <div id="loadingSpinner" class="text-center d-none">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
+<!-- Movements Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-body-tertiary">
+                    <tr>
+                        <th class="ps-4">Sản phẩm</th>
+                        <th>Loại</th>
+                        <th class="text-center">Số lượng</th>
+                        <th>Thời gian</th>
+                        <th class="pe-4">Tham chiếu / Lý do</th>
+                    </tr>
+                </thead>
+                <tbody id="movementTable"></tbody>
+            </table>
         </div>
-        <table class="table table-bordered table-hover" id="movementsTable">
-            <thead class="table-dark">
-                <tr>
-                    <th>Product ID</th>
-                    <th>Movement Type</th>
-                    <th>Quantity</th>
-                    <th>Movement Date</th>
-                    <th>Reason</th>
-                </tr>
-            </thead>
-            <tbody id="movementTable">
-                <tr>
-                    <td colspan="5" class="text-center text-muted">No data available</td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </div>
 
 <script>
-    const API_BASE_URL = 'https://localhost:7279/api/Inventory';
+    async function init() {
+        await populateSelect('filterProduct', 'Products', '-- Tất cả sản phẩm --');
+        await populateSelect('adjustProduct', 'Products', '-- Chọn sản phẩm --');
+        loadMovements();
+    }
 
-    // Load stock movements
     async function loadMovements() {
-        const productId = document.getElementById("searchProductId").value;
-        const movementType = document.getElementById("searchMovementType").value;
+        const productId = document.getElementById('filterProduct').value;
+        const type = document.getElementById('filterType').value;
         
+        const params = new URLSearchParams();
+        if (productId) params.append('productId', productId);
+        if (type) params.append('movementType', type);
+
         try {
-            showLoading(true);
-            
-            const params = new URLSearchParams();
-            if (productId) {
-                params.append('productId', productId);
-            }
-            // Always append movementType to satisfy API validation.
-            // An empty string is handled by the backend to mean "all types".
-            params.append('movementType', movementType);
-            
-            const url = `${API_BASE_URL}/movements?${params.toString()}`;
+            let url = `${API_BASE}/Inventory/movements`;
+            if (params.toString()) url += `?${params.toString()}`;
+            const response = await fetch(url);
+            if (!response.ok) return;
+            const data = await response.json();
 
-            console.log('Fetching from:', url);
+            window.renderTable('movementTable', data, m => {
+                let badgeClass = 'bg-secondary';
+                if(m.movementType === 'In') badgeClass = 'bg-success';
+                else if(m.movementType === 'Out') badgeClass = 'bg-danger';
+                else if(m.movementType === 'Adjustment') badgeClass = 'bg-warning text-dark';
 
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
+                return `
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-semibold text-primary">SP-${m.productId}</span>
+                        </td>
+                        <td><span class="badge ${badgeClass}">${m.movementType}</span></td>
+                        <td class="text-center fw-bold ${m.quantity > 0 ? 'text-success' : 'text-danger'}">
+                            ${m.quantity > 0 ? '+' + m.quantity : m.quantity}
+                        </td>
+                        <td class="text-body-secondary small">${new Date(m.createdAt).toLocaleString('vi-VN')}</td>
+                        <td class="pe-4 small">${m.reference || m.reason || '-'}</td>
+                    </tr>
+                `;
             });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API Error:', response.status, errorText);
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
-            }
-
-            const movements = await response.json();
-            renderMovements(movements);
-        }
-        catch (error) {
-            console.error('Error loading movements:', error);
-            showError(`Failed to load movements: ${error.message}`);
-        }
-        finally {
-            showLoading(false);
-        }
+        } catch (e) { console.error(e); }
     }
 
-    // Render movements in table
-    function renderMovements(movements) {
-        const tbody = document.getElementById("movementTable");
-        
-        if (!movements || movements.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No stock movements found</td></tr>';
-            return;
-        }
-
-        let html = "";
-        movements.forEach(m => {
-            let badgeClass = 'bg-secondary';
-            if (m.movementType === 'IN') badgeClass = 'bg-success';
-            else if (m.movementType === 'OUT') badgeClass = 'bg-danger';
-            else if (m.movementType === 'ADJUSTMENT') badgeClass = 'bg-warning text-dark';
-
-            const date = new Date(m.createdAt);
-            const formattedDate = date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-            });
-
-            html += `
-                <tr>
-                    <td>${m.productId}</td>
-                    <td><span class="badge ${badgeClass}">${m.movementType}</span></td>
-                    <td>${m.quantity}</td>
-                    <td>${formattedDate}</td>
-                    <td>${m.reference || '-'}</td>
-                </tr>
-            `;
-        });
-        
-        tbody.innerHTML = html;
-    }
-
-    // Handle form submission for stock adjustment
-    document.getElementById("adjustmentForm").addEventListener("submit", async function (e) {
+    async function handleAdjust(e) {
         e.preventDefault();
-        
-        const adjustment = {
-            productId: parseInt(document.getElementById("adjustProductId").value),
-            quantity: parseInt(document.getElementById("adjustQuantity").value),
-            reason: document.getElementById("adjustReason").value
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user.id || 1;
+
+        const data = {
+            productId: parseInt(document.getElementById('adjustProduct').value),
+            quantity: parseInt(document.getElementById('adjustQty').value),
+            reason: document.getElementById('adjustReason').value
         };
 
         try {
-            showLoading(true);
-            
-            const response = await fetch(`${API_BASE_URL}/adjust`, {
+            const response = await fetch(`${API_BASE}/Inventory/adjust?userId=${userId}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(adjustment)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
 
-            const responseData = await response.json();
-
-            if (response.ok) {
-                showSuccess('Stock adjusted successfully!');
-                document.getElementById("adjustmentForm").reset();
-                await loadMovements();
-            } else {
-                showError(`Failed to adjust stock: ${responseData.message || 'Unknown error'}`);
-            }
-        } catch (error) {
-            console.error('Error adjusting stock:', error);
-            showError(`Error: ${error.message}`);
-        }
-        finally {
-            showLoading(false);
-        }
-    });
-
-    // Helper functions
-    function showLoading(show) {
-        const spinner = document.getElementById("loadingSpinner");
-        if (show) {
-            spinner.classList.remove('d-none');
-        } else {
-            spinner.classList.add('d-none');
-        }
+            await handleApiError(response);
+            document.getElementById('adjustForm').reset();
+            loadMovements();
+            alert("Điều chỉnh kho thành công!");
+        } catch (e) { alert(e.message); }
     }
 
-    function showError(message) {
-        alert('❌ ' + message);
-    }
-
-    function showSuccess(message) {
-        alert('✅ ' + message);
-    }
-
-    // Auto-load on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        loadMovements();
-    });
+    document.getElementById('adjustForm').addEventListener('submit', handleAdjust);
+    document.addEventListener('DOMContentLoaded', init);
 </script>
-
-<style>
-    .table-hover tbody tr:hover {
-        background-color: rgba(0, 0, 0, 0.075);
-    }
-    
-    .badge {
-        padding: 0.5em 0.75em;
-        font-size: 0.875rem;
-    }
-</style>

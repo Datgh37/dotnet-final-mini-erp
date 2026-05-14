@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP_API.Models.DTOs;
 using MiniERP_API.Services.Interfaces;
 
 namespace MiniERP_API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class InventoryController : ControllerBase
@@ -12,7 +14,7 @@ namespace MiniERP_API.Controllers
         public InventoryController(IInventoryService service) => _service = service;
 
         [HttpGet("movements")]
-        public IActionResult GetMovements([FromQuery] int? productId, [FromQuery] string movementType)
+        public IActionResult GetMovements([FromQuery] int? productId, [FromQuery] string? movementType)
             => Ok(_service.GetMovements(productId, movementType));
 
         [HttpPost("adjust")]

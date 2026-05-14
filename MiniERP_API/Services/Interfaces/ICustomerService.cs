@@ -6,7 +6,7 @@ namespace MiniERP_API.Services.Interfaces
 {
     public interface ICustomerService
     {
-        IEnumerable<CustomerDto> GetAll();
+        IEnumerable<CustomerDto> GetAll(string searchTerm = null);
         CustomerDto GetById(int id);
         int Create(CustomerCreateUpdateDto dto);
         void Update(int id, CustomerCreateUpdateDto dto);

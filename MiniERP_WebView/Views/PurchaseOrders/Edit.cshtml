@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -52,7 +52,7 @@
 
     async function loadOrder() {
         try {
-            const response = await fetch(`https://localhost:7279/api/purchase-orders/${orderId}`);
+            const response = await fetch(`${window.API_BASE}/purchase-orders/${orderId}`);
 
             if (!response.ok) {
                 alert("Load order failed");
@@ -88,7 +88,7 @@
         };
 
         try {
-            const response = await fetch(`https://localhost:7279/api/purchase-orders/${orderId}`, {
+            const response = await fetch(`${window.API_BASE}/purchase-orders/${orderId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -111,3 +111,4 @@
 
     loadOrder();
 </script>
+

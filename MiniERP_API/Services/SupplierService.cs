@@ -18,9 +18,9 @@ namespace MiniERP_API.Services
             _mapper = mapper;
         }
 
-        public IEnumerable<SupplierDto> GetAll()
+        public IEnumerable<SupplierDto> GetAll(string searchTerm = null)
         {
-            var suppliers = _repo.GetAll();
+            var suppliers = string.IsNullOrWhiteSpace(searchTerm) ? _repo.GetAll() : _repo.Search(searchTerm);
             return _mapper.Map<IEnumerable<SupplierDto>>(suppliers);
         }
 
@@ -33,14 +33,26 @@ namespace MiniERP_API.Services
         public int Create(SupplierCreateUpdateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhà cung cấp không được để trống.");
+            
+            var existing = _repo.GetByName(dto.Name);
+            if (existing != null) throw new System.Exception($"Nhà cung cấp '{dto.Name}' đã tồn tại.");
+
             var supplier = _mapper.Map<Supplier>(dto);
             return _repo.Add(supplier);
         }
         public void Update(int id, SupplierCreateUpdateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên nhà cung cấp không được để trống.");
+            
             var existing = _repo.GetById(id);
             if (existing == null) throw new System.Exception("Nhà cung cấp không tồn tại.");
+
+            if (existing.Name != dto.Name)
+            {
+                var duplicate = _repo.GetByName(dto.Name);
+                if (duplicate != null) throw new System.Exception($"Tên nhà cung cấp '{dto.Name}' đã bị trùng.");
+            }
+
             _mapper.Map(dto, existing);
             existing.Id = id;
             _repo.Update(existing);

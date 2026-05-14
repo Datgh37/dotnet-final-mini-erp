@@ -6,7 +6,7 @@ namespace MiniERP_API.Services.Interfaces
 {
     public interface IProductService
     {
-        IEnumerable<ProductDto> GetActiveProducts();
+        IEnumerable<ProductDto> GetActiveProducts(string searchTerm = null, int? categoryId = null, int? brandId = null);
         ProductDto GetProduct(int id);
         int CreateProduct(ProductCreateUpdateDto dto);
         void UpdateProduct(int id, ProductCreateUpdateDto dto);

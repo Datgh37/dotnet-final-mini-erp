@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP_API.Models.DTOs;
 using MiniERP_API.Services.Interfaces;
 
 namespace MiniERP_API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase
@@ -13,6 +15,20 @@ namespace MiniERP_API.Controllers
 
         [HttpGet]
         public IActionResult GetAll() => Ok(_service.GetAll());
+        
+        [HttpPost]
+        public IActionResult Create(RegisterRequest dto)
+        {
+            try
+            {
+                var id = _service.Create(dto);
+                return CreatedAtAction(nameof(GetById), new { id }, new { id, message = "Đã tạo tài khoản thành công." });
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
@@ -31,6 +47,12 @@ namespace MiniERP_API.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (currentUserId != null && int.Parse(currentUserId) == id)
+            {
+                return BadRequest(new { message = "Bạn không thể xóa tài khoản của chính mình." });
+            }
+
             _service.Delete(id);
             return NoContent();
         }

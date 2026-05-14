@@ -1,0 +1,175 @@
+/* CUSTOM STYLES FOR MINI ERP */
+
+/* Theme-aware Variables */
+:root {
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+[data-coreui-theme="dark"] {
+    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
+    --card-hover-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.8);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--cui-body-bg);
+}
+
+/* Sidebar Refinement */
+.sidebar {
+    background: #1e1e2d !important;
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar .nav-icon {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Card Styling */
+.card {
+    border: none;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+/* Modal Styling - Glassmorphism hint */
+.modal-content {
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.175);
+}
+
+[data-coreui-theme="dark"] .modal-content {
+    background-color: #2a2a3c;
+    box-shadow: 0 1rem 3rem rgba(0,0,0,0.5);
+}
+
+.modal-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+[data-coreui-theme="dark"] .modal-header {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Header Gradients */
+.card-header {
+    background: linear-gradient(45deg, #3c4b64, #212333);
+    color: white !important;
+    font-weight: 600;
+    border-bottom: none;
+    padding: 1rem 1.25rem;
+}
+
+.card-header.bg-danger {
+    background: linear-gradient(45deg, #e55353, #d93737) !important;
+}
+
+.card-header.bg-success {
+    background: linear-gradient(45deg, #2eb85c, #1b8d3f) !important;
+}
+
+.card-header.bg-primary {
+    background: linear-gradient(45deg, #321fdb, #1f1498) !important;
+}
+
+/* Table Styling */
+.table thead th {
+    background-color: var(--cui-tertiary-bg);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: var(--cui-secondary-color);
+    padding: 12px 20px !important;
+}
+
+[data-coreui-theme="dark"] .table thead th {
+    background-color: #212333;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(50, 31, 219, 0.04);
+}
+
+/* Form Elements */
+.btn-primary {
+    background-color: #321fdb;
+    border-color: #321fdb;
+    border-radius: 8px;
+    padding: 0.5rem 1.5rem;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+}
+
+/* Profile Dropdown fix */
+.dropdown-menu {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+}
+
+[data-coreui-theme="dark"] .dropdown-menu {
+    background-color: #2a2a3c;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.5);
+}
+
+/* Badge colors */
+.badge {
+    padding: 0.5em 0.8em;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+/* Utility for text readability */
+.text-body-secondary {
+    opacity: 0.8;
+}
+
+/* Charts */
+#revenueChart, #main-chart {
+    filter: drop-shadow(0px 10px 10px rgba(0,0,255,0.05));
+}
+
+/* Password Toggle Eye Icon Adjustment */
+#togglePassword {
+    border-left: none;
+}
+
+/* ADMIN RESTRICTION STYLES */
+body.not-admin #users-menu-item { display: none !important; }
+body.not-admin .btn-warning,
+body.not-admin .btn-danger,
+body.not-admin .btn-edit,
+body.not-admin .btn-delete,
+body.not-admin .btn-success:not([type="submit"]),
+body.not-admin [data-coreui-toggle="modal"]:not(.btn-close):not(.toggle-password) {
+    display: none !important;
+}
+body.not-admin th:nth-last-child(1), 
+body.not-admin td:nth-last-child(1) {
+    display: none !important;
+}

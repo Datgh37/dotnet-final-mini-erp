@@ -18,9 +18,17 @@ namespace MiniERP_API.Services
             _mapper = mapper;
         }
 
-        public IEnumerable<ProductDto> GetActiveProducts()
+        public IEnumerable<ProductDto> GetActiveProducts(string searchTerm = null, int? categoryId = null, int? brandId = null)
         {
-            var products = _repo.GetAll();
+            IEnumerable<Product> products;
+            if (string.IsNullOrWhiteSpace(searchTerm) && !categoryId.HasValue && !brandId.HasValue)
+            {
+                products = _repo.GetAll();
+            }
+            else
+            {
+                products = _repo.Search(searchTerm, categoryId, brandId);
+            }
             return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
@@ -35,6 +43,10 @@ namespace MiniERP_API.Services
             if (string.IsNullOrWhiteSpace(dto.Name)) throw new System.Exception("Tên sản phẩm không được để trống.");
             if (dto.CostPrice < 0 || dto.RetailPrice < 0) throw new System.Exception("Giá trị không hợp lệ.");
             
+            // Validate SKU uniqueness
+            var existing = _repo.GetBySku(dto.SKU);
+            if (existing != null) throw new System.Exception($"Mã SKU '{dto.SKU}' đã tồn tại.");
+
             var product = _mapper.Map<Product>(dto);
             return _repo.Add(product);
         }
@@ -46,6 +58,13 @@ namespace MiniERP_API.Services
             
             var existing = _repo.GetById(id);
             if (existing == null) throw new System.Exception("Sản phẩm không tồn tại.");
+
+            // Validate SKU uniqueness if changed
+            if (existing.SKU != dto.SKU)
+            {
+                var duplicate = _repo.GetBySku(dto.SKU);
+                if (duplicate != null) throw new System.Exception($"Mã SKU '{dto.SKU}' đã bị trùng với sản phẩm khác.");
+            }
 
             _mapper.Map(dto, existing);
             existing.Id = id;

@@ -15,7 +15,8 @@ namespace MiniERP_API.Services
         private readonly IMapper _mapper;
         public PurchaseOrderService(IPurchaseOrderRepository repo, IMapper mapper) { _repo = repo; _mapper = mapper; }
 
-        public IEnumerable<PurchaseOrderDto> GetAll() => _mapper.Map<IEnumerable<PurchaseOrderDto>>(_repo.GetAll());
+        public IEnumerable<PurchaseOrderDto> GetAll(string status = null) 
+            => _mapper.Map<IEnumerable<PurchaseOrderDto>>(_repo.GetAll(status));
         public PurchaseOrderDto GetById(int id) => _mapper.Map<PurchaseOrderDto>(_repo.GetById(id));
 
         public int CreateOrder(CreatePurchaseOrderDto dto)
@@ -31,6 +32,11 @@ namespace MiniERP_API.Services
 
             var order = _mapper.Map<PurchaseOrder>(dto);
             order.PONumber = "PO-" + DateTime.Now.Ticks.ToString().Substring(10);
+            
+            // Safety check for auto-generated PONumber
+            var existing = _repo.GetByNumber(order.PONumber);
+            if (existing != null) order.PONumber += "-R"; // Simple collision avoidance
+
             order.TotalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
 
             return _repo.CreateOrder(order);
