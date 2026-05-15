@@ -13,7 +13,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="bg-body-tertiary">
+                <thead class="table-light">
                     <tr>
                         <th class="ps-4">ID</th>
                         <th>Tên thương hiệu</th>
@@ -31,7 +31,7 @@
 <div class="modal fade" id="BrandDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-body-tertiary">
+            <div class="modal-header border-bottom">
                 <h5 class="modal-title">Chi tiết thương hiệu</h5>
                 <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
             </div>
@@ -42,7 +42,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="text-body-secondary small d-block text-uppercase mb-1">Mô tả</label>
-                    <p id="detailBrandDescription" class="bg-body-tertiary p-3 rounded border text-body"></p>
+                    <p id="detailBrandDescription" class="p-3 rounded border text-body"></p>
                 </div>
                 <div class="text-body-secondary small">ID hệ thống: <span id="detailBrandId"></span></div>
             </div>
@@ -57,7 +57,7 @@
 <!-- Brand Modal -->
 <div class="modal fade" id="BrandModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="brandForm" class="modal-content">
+        <form id="brandForm" class="modal-content needs-validation" novalidate>
             <div class="modal-header">
                 <h5 class="modal-title" id="BrandModalLabel">Thêm thương hiệu mới</h5>
                 <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
@@ -67,6 +67,7 @@
                 <div class="mb-3">
                     <label class="form-label">Tên thương hiệu <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="brandName" required>
+                    <div class="invalid-feedback">Tên thương hiệu là bắt buộc.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Mô tả</label>
@@ -174,14 +175,15 @@
         new coreui.Modal(document.getElementById('BrandModal')).show();
     }
 
-    async function deleteBrand(id) {
-        if (!confirm('Xác nhận xóa thương hiệu này?')) return;
-        try {
-            const response = await fetch(`${API_BASE}/Brands/${id}`, { method: 'DELETE' });
-            await handleApiError(response);
-            showAlert("Đã xóa thương hiệu!");
-            loadBrands();
-        } catch (error) { console.error(error); }
+    function deleteBrand(id) {
+        showConfirm("Xác nhận xóa", "Bạn có chắc chắn muốn xóa thương hiệu này? Thao tác này không thể hoàn tác.", async () => {
+            try {
+                const response = await fetch(`${API_BASE}/Brands/${id}`, { method: 'DELETE' });
+                await handleApiError(response);
+                showAlert("Đã xóa thương hiệu thành công!");
+                loadBrands();
+            } catch (error) { console.error(error); }
+        });
     }
 
     document.getElementById('BrandModal').addEventListener('hidden.coreui.modal', function () {

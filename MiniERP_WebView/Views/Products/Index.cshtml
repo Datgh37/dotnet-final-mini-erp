@@ -32,7 +32,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-nowrap">
+                <thead class="table-light text-nowrap">
                     <tr>
                         <th class="ps-4">SKU</th>
                         <th>Tên sản phẩm</th>
@@ -52,7 +52,7 @@
 <!-- Product Modal -->
 <div class="modal fade" id="ProductModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
-        <form id="productForm" class="modal-content">
+        <form id="productForm" class="modal-content needs-validation" novalidate>
             <div class="modal-header">
                 <h5 class="modal-title" id="ProductModalLabel">Sản phẩm</h5>
                 <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
@@ -63,10 +63,12 @@
                     <div class="col-md-6">
                         <label class="form-label">Tên sản phẩm <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="name" required>
+                        <div class="invalid-feedback">Tên SP là bắt buộc.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Mã SKU <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="sku" required>
+                        <div class="invalid-feedback">SKU là bắt buộc.</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Danh mục</label>
@@ -82,11 +84,13 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Giá vốn</label>
-                        <input type="number" class="form-control" id="costPrice" value="0">
+                        <input type="number" class="form-control" id="costPrice" value="0" min="0" step="0.01">
+                        <div class="invalid-feedback">Giá vốn >= 0.</div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Giá bán</label>
-                        <input type="number" class="form-control" id="retailPrice" value="0">
+                        <input type="number" class="form-control" id="retailPrice" value="0" min="0" step="0.01">
+                        <div class="invalid-feedback">Giá bán >= 0.</div>
                     </div>
                     <div class="col-12">
                         <label class="form-label">Mô tả</label>
@@ -110,7 +114,7 @@
 <div class="modal fade" id="ProductDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-body-tertiary">
+            <div class="modal-header border-bottom">
                 <h5 class="modal-title">Chi tiết sản phẩm</h5>
                 <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
             </div>
@@ -213,7 +217,7 @@
                 
                 return `
                     <tr>
-                        <td class="ps-4 text-muted small">${p.sku}</td>
+                        <td class="ps-4 fw-bold text-primary">${p.sku}</td>
                         <td>
                             <div class="d-flex align-items-center">
                                 ${p.imageUrl ? `<img src="${p.imageUrl}" class="rounded me-2" width="32" height="32" style="object-fit: cover;">` : ''}
@@ -222,7 +226,7 @@
                         </td>
                         <td><span class="badge bg-light text-dark">${cat}</span></td>
                         <td>${brand}</td>
-                        <td class="text-end">${p.retailPrice.toLocaleString()}</td>
+                        <td class="text-end money-text fw-semibold">${p.retailPrice.toLocaleString()} đ</td>
                         <td class="text-center">
                             <span class="badge ${p.stockQuantity <= 5 ? 'bg-danger' : 'bg-success'}">${p.stockQuantity}</span>
                         </td>
@@ -296,7 +300,9 @@
             document.getElementById('detailCategory').innerText = cat;
             document.getElementById('detailBrand').innerText = brand;
             document.getElementById('detailCost').innerText = p.costPrice.toLocaleString() + ' đ';
+            document.getElementById('detailCost').classList.add('money-text');
             document.getElementById('detailRetail').innerText = p.retailPrice.toLocaleString() + ' đ';
+            document.getElementById('detailRetail').classList.add('money-text');
             document.getElementById('detailUnit').innerText = p.unit || '-';
             
             const stockEl = document.getElementById('detailStock');
@@ -316,8 +322,8 @@
                 noImgEl.style.display = 'flex';
             }
             
-            document.getElementById('detailCreatedAt').innerText = new Date(p.createdAt).toLocaleString('vi-VN');
-            document.getElementById('detailUpdatedAt').innerText = p.updatedAt ? new Date(p.updatedAt).toLocaleString('vi-VN') : 'Chưa có';
+            document.getElementById('detailCreatedAt').innerText = new Date(p.createdAt).toLocaleDateString('vi-VN');
+            document.getElementById('detailUpdatedAt').innerText = p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('vi-VN') : 'Chưa có';
             
             document.getElementById('btnEditFromDetail').onclick = () => openEditModal(p.id);
             
@@ -366,14 +372,15 @@
         } catch (error) { console.error(error); }
     }
 
-    async function deleteProduct(id) {
-        if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) return;
-        try {
-            const response = await fetch(`${API_BASE}/Products/${id}`, { method: 'DELETE' });
-            await handleApiError(response);
-            showAlert("Đã xóa sản phẩm thành công!");
-            loadProducts();
-        } catch (error) { console.error(error); }
+    function deleteProduct(id) {
+        showConfirm("Xác nhận xóa", "Bạn có chắc chắn muốn xóa sản phẩm này? Thao tác này sẽ không thể hoàn tác.", async () => {
+            try {
+                const response = await fetch(`${API_BASE}/Products/${id}`, { method: 'DELETE' });
+                await handleApiError(response);
+                showAlert("Đã xóa sản phẩm thành công!");
+                loadProducts();
+            } catch (error) { console.error(error); }
+        });
     }
 
     document.getElementById('productForm').addEventListener('submit', saveProduct);

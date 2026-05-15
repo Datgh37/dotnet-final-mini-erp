@@ -11,7 +11,7 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
         <div class="input-group">
-            <span class="input-group-text bg-white border-end-0"><i class="cil-search"></i></span>
+            <span class="input-group-text bg-transparent border-end-0"><i class="cil-search"></i></span>
             <input type="text" class="form-control border-start-0" id="filterSearch" placeholder="Tìm tên, email hoặc số điện thoại..." onkeyup="if(event.key==='Enter') loadCustomers()">
             <button class="btn btn-info" onclick="loadCustomers()">Tìm kiếm</button>
         </div>
@@ -23,7 +23,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="bg-body-tertiary">
+                <thead class="table-light">
                     <tr>
                         <th class="ps-4">Tên khách hàng</th>
                         <th>Liên hệ</th>
@@ -41,7 +41,7 @@
 <div class="modal fade" id="CustomerDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-body-tertiary">
+            <div class="modal-header border-bottom">
                 <h5 class="modal-title">Thông tin khách hàng</h5>
                 <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
             </div>
@@ -80,7 +80,7 @@
 <!-- Customer Modal -->
 <div class="modal fade" id="CustomerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form id="customerForm" class="modal-content">
+        <form id="customerForm" class="modal-content needs-validation" novalidate>
             <div class="modal-header">
                 <h5 class="modal-title" id="CustomerModalLabel">Khách hàng</h5>
                 <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
@@ -90,10 +90,12 @@
                 <div class="mb-3">
                     <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="name" required>
+                    <div class="invalid-feedback">Họ và tên là bắt buộc.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Email</label>
                     <input type="email" class="form-control" id="email">
+                    <div class="invalid-feedback">Định dạng email không hợp lệ.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Số điện thoại</label>
@@ -243,14 +245,15 @@
         } catch (error) { console.error(error); }
     }
 
-    async function deleteCustomer(id) {
-        if (!confirm('Xóa khách hàng này?')) return;
-        try {
-            const response = await fetch(`${API_BASE}/Customers/${id}`, { method: 'DELETE' });
-            await handleApiError(response);
-            showAlert("Đã xóa khách hàng!");
-            loadCustomers();
-        } catch (error) { console.error(error); }
+    function deleteCustomer(id) {
+        showConfirm("Xác nhận xóa", "Bạn có chắc chắn muốn xóa khách hàng này? Thao tác này không thể hoàn tác.", async () => {
+            try {
+                const response = await fetch(`${API_BASE}/Customers/${id}`, { method: 'DELETE' });
+                await handleApiError(response);
+                showAlert("Đã xóa khách hàng thành công!");
+                loadCustomers();
+            } catch (error) { console.error(error); }
+        });
     }
 
     document.getElementById('customerForm').addEventListener('submit', saveCustomer);

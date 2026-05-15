@@ -31,9 +31,9 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="assets/favicon/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
-    <!-- Vendors styles-->
-    <link rel="stylesheet" href="vendors/simplebar/css/simplebar.css">
-    <link rel="stylesheet" href="css/vendors/simplebar.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/custom.css">
+    <link rel="stylesheet" href="~/vendors/simplebar/css/simplebar.css">
     <!-- Main styles for this application-->
     <link href="~/css/style.css" rel="stylesheet">
     <link href="~/css/custom.css" rel="stylesheet">
@@ -760,7 +760,7 @@
     <!-- Change Password Modal -->
     <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
-            <form id="changePasswordForm" class="modal-content">
+            <form id="changePasswordForm" class="modal-content needs-validation" novalidate>
                 <div class="modal-header">
                     <h5 class="modal-title">Đổi mật khẩu</h5>
                     <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
@@ -768,30 +768,39 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Mật khẩu hiện tại</label>
-                        <div class="input-group">
+                        <div class="input-group has-validation">
                             <input type="password" class="form-control" id="oldPassword" required>
-                            <button class="btn btn-outline-secondary border-secondary-subtle" type="button" onclick="togglePassword('oldPassword', this)">
-                                <i class="cil-eye"></i>
+                            <button class="btn border border-secondary-subtle bg-transparent text-body-secondary" type="button" onclick="togglePassword('oldPassword', this)">
+                                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+                                    <path d="M256 128c-81.191 0-149.625 58.718-160 128 10.375 69.282 78.809 128 160 128s149.625-58.718 160-128c-10.375-69.282-78.809-128-160-128m0 224c-53.02 0-96-42.98-96-96s42.98-96 96-96 96 42.98 96 96-42.98 96-96 96m0-160c-35.346 0-64 28.654-64 64s28.654 64 64 64 64-28.654 64-64-28.654-64-64-64" />
+                                </svg>
                             </button>
+                            <div class="invalid-feedback">Vui lòng nhập mật khẩu cũ.</div>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Mật khẩu mới</label>
-                        <div class="input-group">
+                        <div class="input-group has-validation">
                             <input type="password" class="form-control" id="newPassword" required minlength="6">
-                            <button class="btn btn-outline-secondary border-secondary-subtle" type="button" onclick="togglePassword('newPassword', this)">
-                                <i class="cil-eye"></i>
+                            <button class="btn border border-secondary-subtle bg-transparent text-body-secondary" type="button" onclick="togglePassword('newPassword', this)">
+                                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+                                    <path d="M256 128c-81.191 0-149.625 58.718-160 128 10.375 69.282 78.809 128 160 128s149.625-58.718 160-128c-10.375-69.282-78.809-128-160-128m0 224c-53.02 0-96-42.98-96-96s42.98-96 96-96 96 42.98 96 96-42.98 96-96 96m0-160c-35.346 0-64 28.654-64 64s28.654 64 64 64 64-28.654 64-64-28.654-64-64-64" />
+                                </svg>
                             </button>
+                            <div class="invalid-feedback">Mật khẩu mới phải từ 6 ký tự.</div>
                         </div>
                         <div class="form-text">Tối thiểu 6 ký tự.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Xác nhận mật khẩu mới</label>
-                        <div class="input-group">
+                        <div class="input-group has-validation">
                             <input type="password" class="form-control" id="confirmPassword" required>
-                            <button class="btn btn-outline-secondary border-secondary-subtle" type="button" onclick="togglePassword('confirmPassword', this)">
-                                <i class="cil-eye"></i>
+                            <button class="btn border border-secondary-subtle bg-transparent text-body-secondary" type="button" onclick="togglePassword('confirmPassword', this)">
+                                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+                                    <path d="M256 128c-81.191 0-149.625 58.718-160 128 10.375 69.282 78.809 128 160 128s149.625-58.718 160-128c-10.375-69.282-78.809-128-160-128m0 224c-53.02 0-96-42.98-96-96s42.98-96 96-96 96 42.98 96 96-42.98 96-96 96m0-160c-35.346 0-64 28.654-64 64s28.654 64 64 64 64-28.654 64-64-28.654-64-64-64" />
+                                </svg>
                             </button>
+                            <div class="invalid-feedback">Vui lòng xác nhận lại mật khẩu mới.</div>
                         </div>
                     </div>
                 </div>
@@ -806,27 +815,39 @@
     <script>
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
-            const icon = btn.querySelector('i');
-            if (input.type === 'password') {
+            const svg = btn.querySelector('svg');
+            const isPassword = input.type === 'password';
+            
+            if (isPassword) {
                 input.type = 'text';
-                icon.classList.remove('cil-eye');
-                icon.classList.add('cil-eye-slash');
+                svg.innerHTML = `<path d="M432 256c10.375 69.282-78.809 128-160 128s-149.625-58.718-160-128c10.375-69.282 78.809-128 160-128s149.625 58.718 160 128m-160-96c-53.02 0-96 42.98-96 96s42.98 96 96 96 96-42.98 96-96-42.98-96-96-96m0 160c-35.346 0-64-28.654-64-64s28.654-64 64-64 64 28.654 64 64-28.654 64-64 64"/><path d="m463.515 429.515-392-392-22.63 22.63 392 392z"/>`;
             } else {
                 input.type = 'password';
-                icon.classList.remove('cil-eye-slash');
-                icon.classList.add('cil-eye');
+                svg.innerHTML = `<path d="M256 128c-81.191 0-149.625 58.718-160 128 10.375 69.282 78.809 128 160 128s149.625-58.718 160-128c-10.375-69.282-78.809-128-160-128m0 224c-53.02 0-96-42.98-96-96s42.98-96 96-96 96 42.98 96 96-42.98 96-96 96m0-160c-35.346 0-64 28.654-64 64s28.654 64 64 64 64-28.654 64-64-28.654-64-64-64"/>`;
             }
         }
 
         document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const form = e.target;
+            
+            if (!form.checkValidity()) {
+                e.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+
             const oldPass = document.getElementById('oldPassword').value;
             const newPass = document.getElementById('newPassword').value;
             const confirmPass = document.getElementById('confirmPassword').value;
 
             if (newPass !== confirmPass) {
+                document.getElementById('confirmPassword').setCustomValidity("Passwords do not match");
+                form.classList.add('was-validated');
                 showAlert("Xác nhận mật khẩu không khớp!", "danger");
                 return;
+            } else {
+                document.getElementById('confirmPassword').setCustomValidity("");
             }
 
             const success = await window.changePassword(oldPass, newPass);

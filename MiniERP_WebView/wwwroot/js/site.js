@@ -158,25 +158,75 @@ window.showAlert = function(message, type = 'success') {
 
     const toast = document.createElement('div');
     toast.className = `glass-toast toast-${type} position-fixed top-0 start-50 translate-middle-x`;
+    toast.style.zIndex = '9999';
     
     let icon = 'cil-check-circle';
     if (type === 'danger') icon = 'cil-x-circle';
     if (type === 'info') icon = 'cil-info';
+    if (type === 'warning') icon = 'cil-warning';
 
     toast.innerHTML = `
-        <i class="${icon} text-${type}"></i>
-        <div class="flex-grow-1">${message}</div>
+        <div class="glass-container d-flex align-items-center px-3 py-2 shadow-lg rounded-pill border border-${type} border-opacity-25" style="min-width: 300px;">
+            <i class="${icon} text-${type} fs-4 me-2"></i>
+            <div class="flex-grow-1 fw-medium text-body">${message}</div>
+            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()" style="font-size: 0.7rem;"></button>
+        </div>
     `;
     
     document.body.appendChild(toast);
-    
-    // Force reflow for animation
     setTimeout(() => toast.classList.add('show'), 10);
 
     setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400);
-    }, 4000);
+        if(toast.parentElement) {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }
+    }, 5000);
+};
+
+window.showConfirm = function(title, message, onConfirm) {
+    const modalId = 'globalConfirmModal';
+    let modalEl = document.getElementById(modalId);
+    if (!modalEl) {
+        modalEl = document.createElement('div');
+        modalEl.id = modalId;
+        modalEl.className = 'modal fade';
+        modalEl.setAttribute('tabindex', '-1');
+        modalEl.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered shadow-lg">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold text-primary">${title}</h5>
+                        <button type="button" class="btn-close" data-coreui-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body py-4">
+                        <p class="mb-0 text-secondary">${message}</p>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light px-4" data-coreui-dismiss="modal">Hủy</button>
+                        <button type="button" id="confirmBtn" class="btn btn-primary px-4 shadow-sm">Xác nhận</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalEl);
+    } else {
+        modalEl.querySelector('.modal-title').innerText = title;
+        modalEl.querySelector('.modal-body p').innerText = message;
+    }
+
+    const confirmBtn = modalEl.querySelector('#confirmBtn');
+    // Remove old listeners
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+    newConfirmBtn.addEventListener('click', () => {
+        const modalInstance = coreui.Modal.getInstance(modalEl);
+        if(modalInstance) modalInstance.hide();
+        onConfirm();
+    });
+
+    new coreui.Modal(modalEl).show();
 };
 
 // --- AUTH UI ---

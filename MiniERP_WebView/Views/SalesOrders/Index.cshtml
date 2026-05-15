@@ -4,6 +4,9 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Quản lý Đơn bán hàng</h2>
+    <button class="btn btn-primary" onclick="openCreateOrderModal()">
+        <i class="cil-plus"></i> Tạo đơn bán hàng
+    </button>
 </div>
 
 <!-- Filters -->
@@ -45,7 +48,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 text-nowrap">
-                <thead class="bg-body-tertiary">
+                <thead class="table-light">
                     <tr>
                         <th class="ps-4">Mã đơn</th>
                         <th>Ngày đặt</th>
@@ -61,7 +64,100 @@
     </div>
 </div>
 
-<!-- Order Detail & Status Modal -->
+<!-- CREATE ORDER MODAL (XL) -->
+<div class="modal fade" id="CreateOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="cil-cart me-2"></i> Tạo đơn bán hàng mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-coreui-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="createOrderFormContainer">
+                <form id="createOrderForm" class="needs-validation" novalidate>
+                <div class="row g-3">
+                    <!-- Left: Info -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Khách hàng <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="orderCustomerId" required></select>
+                                    <div class="invalid-feedback">Vui lòng chọn khách hàng.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Ngày đặt hàng <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="orderDate" required>
+                                    <div class="invalid-feedback">Vui lòng chọn ngày đặt hàng (không được ở quá khứ).</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Địa chỉ giao hàng</label>
+                                    <textarea class="form-control" id="orderShippingAddress" rows="2"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Thanh toán</label>
+                                    <select class="form-select" id="orderPaymentMethod">
+                                        <option value="CASH">Tiền mặt</option>
+                                        <option value="BANK_TRANSFER">Chuyển khoản</option>
+                                        <option value="COD">Thu hộ (COD)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small fw-bold">Ghi chú</label>
+                                    <textarea class="form-control" id="orderNotes" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right: Items -->
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Danh mục sản phẩm</span>
+                                <button type="button" class="btn btn-sm btn-success text-white" onclick="addItemRow()">
+                                    <i class="cil-plus"></i> Thêm dòng
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 400px;">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead class="table-light sticky-top">
+                                            <tr>
+                                                <th class="ps-3">Sản phẩm</th>
+                                                <th class="text-center" style="width: 110px;">Số lượng</th>
+                                                <th class="text-end" style="width: 160px;">Đơn giá</th>
+                                                <th class="text-end pe-3" style="width: 150px;">Thành tiền</th>
+                                                <th style="width: 50px;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="createItemsTableBody"></tbody>
+                                    </table>
+                                </div>
+                                <div id="no-items-msg" class="text-center py-5 text-muted d-none">
+                                    Chưa có sản phẩm nào
+                                </div>
+                            </div>
+                            <div class="card-footer border-top">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small">Tổng thanh toán:</span>
+                                    <span class="fw-bold fs-4 text-primary" id="createGrandTotal">0 đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary px-4" onclick="submitNewOrder()">
+                    <i class="cil-check-circle me-1"></i> XÁC NHẬN TẠO ĐƠN
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Detail Modal -->
 <div class="modal fade" id="OrderDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -73,7 +169,7 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label class="text-body-secondary small">Khách hàng:</label>
-                        <div id="modalCustomer" class="fw-bold"></div>
+                        <div id="modalCustomer" class="fw-bold text-primary"></div>
                         <label class="text-muted small mt-2">Địa chỉ giao hàng:</label>
                         <div id="modalAddress"></div>
                     </div>
@@ -104,20 +200,23 @@
                     </tfoot>
                 </table>
 
-                <hr>
-                <div class="bg-body-tertiary p-3 rounded">
-                    <label class="form-label fw-bold">Cập nhật trạng thái</label>
-                    <div class="d-flex gap-2">
-                        <select class="form-select w-50" id="updateStatusSelect">
+            </div>
+            <div class="modal-footer border-top bg-light py-2">
+                <div class="d-flex align-items-center w-100 justify-content-between">
+                    <div class="d-flex align-items-center gap-2 w-75">
+                        <label class="form-label fw-bold mb-0 small text-nowrap">Trạng thái:</label>
+                        <select class="form-select form-select-sm w-50" id="updateStatusSelect">
                             <option value="NEW">NEW</option>
                             <option value="PROCESSING">PROCESSING</option>
                             <option value="SHIPPED">SHIPPED</option>
                             <option value="COMPLETED">COMPLETED</option>
                             <option value="CANCELLED">CANCELLED</option>
                         </select>
-                        <button class="btn btn-success" onclick="updateOrderStatus()">Cập nhật</button>
+                        <button class="btn btn-sm btn-success text-white" onclick="updateOrderStatus()">Cập nhật</button>
                     </div>
+                    <button type="button" class="btn btn-sm btn-secondary" data-coreui-dismiss="modal">Đóng</button>
                 </div>
+            </div>
             </div>
         </div>
     </div>
@@ -125,28 +224,36 @@
 
 <script>
     let currentOrderId = null;
+    let productList = [];
+    let createItems = [];
+
+    let categories = [];
 
     async function init() {
         await populateSelect('filterCustomer', 'Customers', '-- Tất cả khách hàng --');
+        await populateSelect('orderCustomerId', 'Customers', '-- Chọn khách hàng --');
+        const [pData, cData] = await Promise.all([
+            fetch(`${API_BASE}/Products`).then(r => r.json()),
+            fetch(`${API_BASE}/Categories`).then(r => r.json())
+        ]);
+        productList = pData;
+        categories = cData;
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('filterFrom').value = today;
+        document.getElementById('filterTo').value = today;
         loadOrders();
     }
 
     async function loadOrders() {
+        const params = new URLSearchParams();
         const status = document.getElementById('filterStatus').value;
         const customerId = document.getElementById('filterCustomer').value;
-        const from = document.getElementById('filterFrom').value;
-        const to = document.getElementById('filterTo').value;
-
-        const params = new URLSearchParams();
         if (status) params.append('status', status);
         if (customerId) params.append('customerId', customerId);
-        if (from) params.append('fromDate', from);
-        if (to) params.append('toDate', to);
-
+        
         try {
-            let url = `${API_BASE}/sales-orders`;
-            if (params.toString()) url += `?${params.toString()}`;
-            const response = await fetch(url);
+            const response = await fetch(`${API_BASE}/sales-orders?${params.toString()}`);
             if (!response.ok) return;
             const data = await response.json();
 
@@ -154,21 +261,21 @@
                 const date = new Date(o.orderDate).toLocaleDateString('vi-VN');
                 const total = o.totalAmount.toLocaleString('vi-VN');
                 let badgeClass = 'bg-secondary';
-                if(o.status === 'NEW') badgeClass = 'bg-info';
-                else if(o.status === 'PROCESSING') badgeClass = 'bg-warning';
-                else if(o.status === 'SHIPPED') badgeClass = 'bg-primary';
-                else if(o.status === 'COMPLETED') badgeClass = 'bg-success';
-                else if(o.status === 'CANCELLED') badgeClass = 'bg-danger';
+                if(o.status === 'NEW') badgeClass = 'bg-info text-white';
+                else if(o.status === 'PROCESSING') badgeClass = 'bg-warning text-dark';
+                else if(o.status === 'SHIPPED') badgeClass = 'bg-primary text-white';
+                else if(o.status === 'COMPLETED') badgeClass = 'bg-success text-white';
+                else if(o.status === 'CANCELLED') badgeClass = 'bg-danger text-white';
 
                 return `
                     <tr>
-                        <td class="ps-4 fw-bold">#${o.orderNumber}</td>
+                        <td class="ps-4 fw-bold text-primary">${o.orderNumber}</td>
                         <td>${date}</td>
                         <td>${o.customerName || 'Khách lẻ'}</td>
-                        <td class="fw-bold">${total} đ</td>
+                        <td class="money-text fw-bold">${total} đ</td>
                         <td><span class="badge ${badgeClass}">${o.status}</span></td>
                         <td class="text-end pe-4">
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDetails(${o.id})">Chi tiết & Trạng thái</button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDetails(${o.id})">Chi tiết</button>
                         </td>
                     </tr>
                 `;
@@ -176,33 +283,162 @@
         } catch (e) { console.error(e); }
     }
 
+    // --- CREATE LOGIC ---
+    function openCreateOrderModal() {
+        createItems = [];
+        document.getElementById('createOrderForm').classList.remove('was-validated');
+        
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('orderDate');
+        if(dateInput) {
+            dateInput.value = today;
+            dateInput.setAttribute('min', today);
+        }
+
+        document.getElementById('orderShippingAddress').value = '';
+        document.getElementById('orderNotes').value = '';
+        document.getElementById('orderCustomerId').value = '';
+        addItemRow();
+        new coreui.Modal(document.getElementById('CreateOrderModal')).show();
+    }
+
+    function addItemRow() {
+        const id = Date.now();
+        createItems.push({ tempId: id, productId: '', quantity: 1, unitPrice: 0, total: 0 });
+        renderCreateItems();
+    }
+
+    function removeCreateItem(tempId) {
+        createItems = createItems.filter(i => i.tempId !== tempId);
+        renderCreateItems();
+    }
+
+    function updateCreateItem(tempId, field, value) {
+        const item = createItems.find(i => i.tempId === tempId);
+        if (!item) return;
+        if (field === 'productId') {
+            item.productId = value;
+            const p = productList.find(x => x.id == value);
+            item.unitPrice = p ? p.retailPrice : 0;
+        } else if (field === 'quantity') {
+            item.quantity = parseInt(value) || 0;
+        } else if (field === 'unitPrice') {
+            item.unitPrice = parseFloat(value) || 0;
+        }
+        item.total = item.quantity * item.unitPrice;
+        renderCreateItems();
+    }
+
+    function renderCreateItems() {
+        const tbody = document.getElementById('createItemsTableBody');
+        const msg = document.getElementById('no-items-msg');
+        
+        // Group products by category
+        let productOptionsHtml = '<option value="">-- Chọn sản phẩm --</option>';
+        categories.forEach(cat => {
+            const catProducts = productList.filter(p => p.categoryId === cat.id);
+            if (catProducts.length > 0) {
+                productOptionsHtml += `<optgroup label="${cat.name}">`;
+                catProducts.forEach(p => {
+                    productOptionsHtml += `<option value="${p.id}">${p.name} (${p.sku})</option>`;
+                });
+                productOptionsHtml += `</optgroup>`;
+            }
+        });
+        const otherProducts = productList.filter(p => !p.categoryId);
+        if (otherProducts.length > 0) {
+            productOptionsHtml += `<optgroup label="Khác">`;
+            otherProducts.forEach(p => {
+                productOptionsHtml += `<option value="${p.id}">${p.name} (${p.sku})</option>`;
+            });
+            productOptionsHtml += `</optgroup>`;
+        }
+
+        if (createItems.length === 0) {
+            tbody.innerHTML = '';
+            msg.classList.remove('d-none');
+        } else {
+            msg.classList.add('d-none');
+            tbody.innerHTML = createItems.map(item => `
+                <tr>
+                    <td class="ps-3 position-relative">
+                        <select class="form-select form-select-sm" required onchange="updateCreateItem(${item.tempId}, 'productId', this.value)">
+                            ${productOptionsHtml.replace(`value="${item.productId}"`, `value="${item.productId}" selected`)}
+                        </select>
+                        <div class="invalid-tooltip">Chọn SP.</div>
+                    </td>
+                    <td class="position-relative">
+                        <input type="number" class="form-control form-control-sm text-center" min="1" required value="${item.quantity}" onchange="updateCreateItem(${item.tempId}, 'quantity', this.value)">
+                        <div class="invalid-tooltip">SL > 0</div>
+                    </td>
+                    <td class="position-relative">
+                        <input type="number" class="form-control form-control-sm text-end" min="0" required value="${item.unitPrice}" onchange="updateCreateItem(${item.tempId}, 'unitPrice', this.value)">
+                        <div class="invalid-tooltip">Giá >= 0</div>
+                    </td>
+                    <td class="text-end fw-bold money-text pe-3">${item.total.toLocaleString()} đ</td>
+                    <td class="text-center pe-3"><button class="btn btn-link text-danger p-0" onclick="removeCreateItem(${item.tempId})"><i class="cil-trash"></i></button></td>
+                </tr>
+            `).join('');
+        }
+        const grandTotal = createItems.reduce((sum, i) => sum + i.total, 0);
+        document.getElementById('createGrandTotal').innerText = grandTotal.toLocaleString() + ' đ';
+    }
+
+    async function submitNewOrder() {
+        const form = document.getElementById('createOrderForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const customerId = document.getElementById('orderCustomerId').value;
+        const validItems = createItems.filter(i => i.productId && i.quantity > 0);
+        if(validItems.length === 0) return showAlert("Đơn hàng phải có sản phẩm", "danger");
+
+        const data = {
+            customerId: parseInt(customerId),
+            orderDate: document.getElementById('orderDate').value,
+            shippingAddress: document.getElementById('orderShippingAddress').value,
+            paymentMethod: document.getElementById('orderPaymentMethod').value,
+            notes: document.getElementById('orderNotes').value,
+            items: validItems.map(i => ({ productId: parseInt(i.productId), quantity: i.quantity, unitPrice: i.unitPrice, discount: 0 }))
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/sales-orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            await handleApiError(res);
+            coreui.Modal.getInstance(document.getElementById('CreateOrderModal')).hide();
+            showAlert("Tạo đơn hàng thành công!");
+            loadOrders();
+        } catch (e) { console.error(e); }
+    }
+
+    // --- DETAIL & STATUS LOGIC ---
     async function viewOrderDetails(id) {
         currentOrderId = id;
         try {
             const response = await fetch(`${API_BASE}/sales-orders/${id}`);
             const o = await response.json();
-
             document.getElementById('modalOrderNumber').innerText = o.orderNumber;
             document.getElementById('modalCustomer').innerText = o.customerName || 'Khách lẻ';
             document.getElementById('modalAddress').innerText = o.shippingAddress || '-';
-            document.getElementById('modalDate').innerText = new Date(o.orderDate).toLocaleString('vi-VN');
+            document.getElementById('modalDate').innerText = new Date(o.orderDate).toLocaleDateString('vi-VN');
             document.getElementById('modalNotes').innerText = o.notes || '-';
             document.getElementById('modalTotal').innerText = o.totalAmount.toLocaleString('vi-VN') + ' đ';
+            document.getElementById('modalTotal').classList.add('money-text');
             document.getElementById('updateStatusSelect').value = o.status;
-
-            let itemsHtml = '';
-            o.items.forEach(item => {
-                itemsHtml += `
-                    <tr>
-                        <td>${item.productName || 'ID: ' + item.productId}</td>
-                        <td class="text-end">${item.unitPrice.toLocaleString()}</td>
-                        <td class="text-center">${item.quantity}</td>
-                        <td class="text-end">${(item.unitPrice * item.quantity).toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('modalItemsTable').innerHTML = itemsHtml;
-
+            document.getElementById('modalItemsTable').innerHTML = o.items.map(item => `
+                <tr>
+                    <td>${item.productName}</td>
+                    <td class="text-end money-text">${item.unitPrice.toLocaleString()}</td>
+                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-end money-text fw-bold">${(item.unitPrice * item.quantity).toLocaleString()}</td>
+                </tr>
+            `).join('');
             new coreui.Modal(document.getElementById('OrderDetailModal')).show();
         } catch (e) { console.error(e); }
     }
@@ -215,10 +451,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             });
-
             await handleApiError(response);
             coreui.Modal.getInstance(document.getElementById('OrderDetailModal')).hide();
-            showAlert("Cập nhật trạng thái đơn hàng thành công!");
+            showAlert("Cập nhật thành công!");
             loadOrders();
         } catch (e) { console.error(e); }
     }

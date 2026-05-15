@@ -39,7 +39,7 @@ namespace MiniERP_API.Helpers
             CreateMap<SalesOrder, SalesOrderDto>();
             CreateMap<SalesOrderItem, SalesOrderItemDto>();
             CreateMap<CreateSalesOrderDto, SalesOrder>()
-                .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.OrderDate, opt => opt.MapFrom(src => src.OrderDate ?? DateTime.Now))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => "NEW"))
                 .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src => "PENDING"));
             CreateMap<CreateSalesOrderItemDto, SalesOrderItem>();

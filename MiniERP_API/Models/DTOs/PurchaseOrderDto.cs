@@ -15,6 +15,9 @@ namespace MiniERP_API.Models.DTOs
         /// <example>1</example>
         public int? SupplierId { get; set; }
         
+        /// <example>Cong ty The Gioi So</example>
+        public string SupplierName { get; set; }
+        
         /// <example>2026-05-14T10:00:00Z</example>
         public DateTime? OrderDate { get; set; }
         
@@ -43,6 +46,9 @@ namespace MiniERP_API.Models.DTOs
         
         /// <example>1</example>
         public int ProductId { get; set; }
+        
+        /// <example>iPhone 15 Pro</example>
+        public string ProductName { get; set; }
         
         /// <example>50</example>
         public int Quantity { get; set; }

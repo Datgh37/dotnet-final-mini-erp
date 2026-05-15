@@ -1,203 +1,27 @@
-/* CUSTOM STYLES FOR MINI ERP */
-
-/* Theme-aware Variables */
-:root {
-    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    --card-hover-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-[data-coreui-theme="dark"] {
-    --card-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.5);
-    --card-hover-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.8);
-}
-
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: var(--cui-body-bg);
-}
-
-/* Sidebar Refinement */
-.sidebar {
-    background: #1e1e2d !important;
-}
-
-.sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 500;
-    transition: all 0.2s ease;
-}
-
-.sidebar .nav-link:hover, .sidebar .nav-link.active {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.sidebar .nav-icon {
-    color: rgba(255, 255, 255, 0.4);
-}
-
-/* Card Styling */
-.card {
-    border: none;
-    box-shadow: var(--card-shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 12px;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--card-hover-shadow);
-}
-
-/* Modal Styling - Glassmorphism hint */
-.modal-content {
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 1rem 3rem rgba(0,0,0,0.175);
-}
-
-[data-coreui-theme="dark"] .modal-content {
-    background-color: #2a2a3c;
-    box-shadow: 0 1rem 3rem rgba(0,0,0,0.5);
-}
-
-.modal-header {
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-[data-coreui-theme="dark"] .modal-header {
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-/* Header Gradients */
-.card-header {
-    background: linear-gradient(45deg, #3c4b64, #212333);
-    color: white !important;
+/* Custom ERP Styles */
+.money-text {
+    font-family: 'Roboto Mono', 'SFMono-Regular', Consolas, monospace;
+    font-size: 0.875rem;
     font-weight: 600;
-    border-bottom: none;
-    padding: 1rem 1.25rem;
+    white-space: nowrap;
+    letter-spacing: -0.02em;
 }
 
-.card-header.bg-danger {
-    background: linear-gradient(45deg, #e55353, #d93737) !important;
+.table th.text-end, .table td.text-end {
+    padding-right: 1.5rem !important;
 }
 
-.card-header.bg-success {
-    background: linear-gradient(45deg, #2eb85c, #1b8d3f) !important;
+/* Optimize for very large numbers in badges */
+.badge.money-badge {
+    font-size: 0.8rem;
+    padding: 0.4em 0.8em;
 }
 
-.card-header.bg-primary {
-    background: linear-gradient(45deg, #321fdb, #1f1498) !important;
-}
-
-/* Table Styling */
-.table thead th {
-    background-color: var(--cui-tertiary-bg);
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    color: var(--cui-secondary-color);
-    padding: 12px 20px !important;
-}
-
-[data-coreui-theme="dark"] .table thead th {
-    background-color: #212333;
-}
-
-.table tbody tr {
-    transition: background-color 0.2s ease;
-}
-
-.table tbody tr:hover {
-    background-color: rgba(50, 31, 219, 0.04);
-}
-
-/* Form Elements */
-.btn-primary {
-    background-color: #321fdb;
-    border-color: #321fdb;
-    border-radius: 8px;
-    padding: 0.5rem 1.5rem;
-}
-
-.form-control, .form-select {
-    border-radius: 8px;
-}
-
-/* Profile Dropdown fix */
-.dropdown-menu {
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
-}
-
-[data-coreui-theme="dark"] .dropdown-menu {
-    background-color: #2a2a3c;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.5);
-}
-
-/* Badge colors */
-.badge {
-    padding: 0.5em 0.8em;
-    border-radius: 6px;
-    font-weight: 600;
-}
-
-/* Utility for text readability */
-.text-body-secondary {
-    opacity: 0.8;
-}
-
-/* Charts */
-#revenueChart, #main-chart {
-    filter: drop-shadow(0px 10px 10px rgba(0,0,255,0.05));
-}
-
-/* Password Toggle Eye Icon Adjustment */
-#togglePassword {
-    border-left: none;
-}
-
-/* ADMIN RESTRICTION STYLES */
-body.not-admin #users-menu-item { display: none !important; }
-body.not-admin .btn-warning,
-body.not-admin .btn-danger,
-body.not-admin .btn-edit,
-body.not-admin .btn-delete,
-body.not-admin .btn-success:not([type="submit"]),
-body.not-admin [data-coreui-toggle="modal"]:not(.btn-close):not(.toggle-password) {
-    display: none !important;
-}
-body.not-admin th:nth-last-child(1), 
-body.not-admin td:nth-last-child(1) {
-    display: none !important;
-}
-/* GLASSMORPHISM TOAST */
+/* Glassmorphism Toast Improvements */
 .glass-toast {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 12px;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-    color: #1e1e2d;
-    padding: 1rem 1.5rem;
-    min-width: 300px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     opacity: 0;
     transform: translate(-50%, -20px);
-    z-index: 10000;
-}
-
-[data-coreui-theme="dark"] .glass-toast {
-    background: rgba(30, 30, 45, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #fff;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 .glass-toast.show {
@@ -205,10 +29,87 @@ body.not-admin td:nth-last-child(1) {
     transform: translate(-50%, 20px);
 }
 
-.glass-toast.toast-success { border-left: 5px solid #2eb85c; }
-.glass-toast.toast-danger { border-left: 5px solid #e55353; }
-.glass-toast.toast-info { border-left: 5px solid #3399ff; }
+.glass-container {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
 
-.glass-toast i {
-    font-size: 1.5rem;
+[data-coreui-theme="light"] .glass-container {
+    background: rgba(255, 255, 255, 0.85);
+}
+
+[data-coreui-theme="dark"] .glass-container {
+    background: rgba(45, 45, 60, 0.8);
+}
+
+
+/* Theme-aware Text & Icon Contrast Improvements */
+[data-coreui-theme="dark"] .text-dark,
+[data-coreui-theme="dark"] .fw-bold {
+    color: rgba(255, 255, 255, 0.95) !important;
+}
+
+[data-coreui-theme="dark"] .text-body-secondary {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-coreui-theme="dark"] .bg-light {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--cui-body-color) !important;
+}
+
+/* Ensure Icons adapt to theme when not in a colored button */
+.icon, i[class^="cil-"], svg.icon {
+    color: inherit;
+    fill: currentColor;
+}
+
+/* Specific contrast for money text */
+[data-coreui-theme="dark"] .money-text {
+    color: #4ade80 !important; /* Brighter green for dark mode */
+}
+[data-coreui-theme="light"] .money-text {
+    color: #157347 !important; /* Darker green for light mode */
+}
+
+/* Dashboard Stat Icon Contrast */
+.bg-white.bg-opacity-25 i, 
+.bg-white.bg-opacity-25 svg {
+    color: white !important;
+    fill: white !important;
+}
+
+/* Button & Link Contrast */
+[data-coreui-theme="dark"] .btn-link {
+    color: #339af0 !important;
+}
+
+/* Table Content Spacing Improvements */
+.table th:first-child, 
+.table td:first-child {
+    padding-left: 1.25rem !important;
+}
+
+.table th:last-child, 
+.table td:last-child {
+    padding-right: 1.25rem !important;
+}
+
+/* Uniform Badge Widths for Professional Look */
+.table .badge {
+    min-width: 95px;
+    padding: 0.5em 0.7em;
+    display: inline-block;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Hide Spin Buttons in Tables for better UX */
+.table input[type="number"]::-webkit-inner-spin-button,
+.table input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.table input[type="number"] {
+    -moz-appearance: textfield;
 }

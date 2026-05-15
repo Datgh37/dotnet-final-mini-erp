@@ -12,12 +12,59 @@ namespace MiniERP_API.Services
     public class PurchaseOrderService : IPurchaseOrderService
     {
         private readonly IPurchaseOrderRepository _repo;
+        private readonly ISupplierRepository _supplierRepo;
+        private readonly IProductRepository _productRepo;
         private readonly IMapper _mapper;
-        public PurchaseOrderService(IPurchaseOrderRepository repo, IMapper mapper) { _repo = repo; _mapper = mapper; }
+
+        public PurchaseOrderService(IPurchaseOrderRepository repo, 
+                                   ISupplierRepository supplierRepo,
+                                   IProductRepository productRepo,
+                                   IMapper mapper) 
+        { 
+            _repo = repo; 
+            _supplierRepo = supplierRepo;
+            _productRepo = productRepo;
+            _mapper = mapper; 
+        }
 
         public IEnumerable<PurchaseOrderDto> GetAll(string status = null) 
-            => _mapper.Map<IEnumerable<PurchaseOrderDto>>(_repo.GetAll(status));
-        public PurchaseOrderDto GetById(int id) => _mapper.Map<PurchaseOrderDto>(_repo.GetById(id));
+        {
+            var orders = _repo.GetAll(status);
+            var dtos = _mapper.Map<IEnumerable<PurchaseOrderDto>>(orders);
+            foreach (var d in dtos)
+            {
+                if (d.SupplierId.HasValue)
+                {
+                    var sup = _supplierRepo.GetById(d.SupplierId.Value);
+                    d.SupplierName = sup?.Name ?? "N/A";
+                }
+            }
+            return dtos;
+        }
+
+        public PurchaseOrderDto GetById(int id) 
+        {
+            var order = _repo.GetById(id);
+            if (order == null) return null;
+            var dto = _mapper.Map<PurchaseOrderDto>(order);
+
+            if (dto.SupplierId.HasValue)
+            {
+                var sup = _supplierRepo.GetById(dto.SupplierId.Value);
+                dto.SupplierName = sup?.Name ?? "N/A";
+            }
+
+            if (dto.Items != null)
+            {
+                foreach (var item in dto.Items)
+                {
+                    var prod = _productRepo.GetById(item.ProductId);
+                    item.ProductName = prod?.Name ?? "Sản phẩm không tồn tại";
+                }
+            }
+            
+            return dto;
+        }
 
         public int CreateOrder(CreatePurchaseOrderDto dto)
         {
@@ -30,6 +77,14 @@ namespace MiniERP_API.Services
             if (dto.Items.Any(i => i.UnitPrice < 0))
                 throw new System.Exception("Đơn giá không được âm.");
 
+            if (dto.OrderDate.HasValue && dto.OrderDate.Value.Date < DateTime.Now.Date)
+                throw new System.Exception("Ngày đặt hàng không được ở quá khứ.");
+
+            if (dto.ExpectedDate.HasValue && dto.ExpectedDate.Value.Date < DateTime.Now.Date)
+                throw new System.Exception("Ngày dự kiến nhận không được ở quá khứ.");
+
+            if (!dto.OrderDate.HasValue) dto.OrderDate = DateTime.Now;
+
             var order = _mapper.Map<PurchaseOrder>(dto);
             order.PONumber = "PO-" + DateTime.Now.Ticks.ToString().Substring(10);
             
@@ -37,6 +92,7 @@ namespace MiniERP_API.Services
             var existing = _repo.GetByNumber(order.PONumber);
             if (existing != null) order.PONumber += "-R"; // Simple collision avoidance
 
+            order.OrderDate = dto.OrderDate.Value;
             order.TotalAmount = dto.Items.Sum(i => i.UnitPrice * i.Quantity);
 
             return _repo.CreateOrder(order);

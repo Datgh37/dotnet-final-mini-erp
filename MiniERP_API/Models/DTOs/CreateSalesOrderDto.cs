@@ -9,6 +9,9 @@ namespace MiniERP_API.Models.DTOs
         [Required(ErrorMessage = "Khách hàng là bắt buộc.")]
         public int? CustomerId { get; set; }
         
+        /// <example>2026-05-14T10:00:00Z</example>
+        public System.DateTime? OrderDate { get; set; }
+        
         /// <example>CASH</example>
         public string PaymentMethod { get; set; }
         

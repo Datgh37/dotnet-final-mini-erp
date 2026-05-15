@@ -9,11 +9,37 @@ namespace MiniERP_API.Services
     public class InventoryService : IInventoryService
     {
         private readonly IInventoryRepository _repo;
+        private readonly IProductRepository _productRepo;
         private readonly IMapper _mapper;
-        public InventoryService(IInventoryRepository repo, IMapper mapper) { _repo = repo; _mapper = mapper; }
+        public InventoryService(IInventoryRepository repo, IProductRepository productRepo, IMapper mapper) 
+        { 
+            _repo = repo; 
+            _productRepo = productRepo;
+            _mapper = mapper; 
+        }
 
         public IEnumerable<StockMovementDto> GetMovements(int? productId, string movementType)
-            => _mapper.Map<IEnumerable<StockMovementDto>>(_repo.GetMovements(productId, movementType));
+        {
+            var movements = _repo.GetMovements(productId, movementType);
+            var dtos = _mapper.Map<IEnumerable<StockMovementDto>>(movements);
+            
+            foreach (var d in dtos)
+            {
+                var prod = _productRepo.GetById(d.ProductId);
+                if (prod != null)
+                {
+                    d.ProductName = prod.Name;
+                    d.SKU = prod.SKU;
+                }
+                else
+                {
+                    d.ProductName = $"SP-{d.ProductId}";
+                    d.SKU = "N/A";
+                }
+            }
+            
+            return dtos;
+        }
 
         public void AdjustStock(StockAdjustDto dto, int? userId)
         {

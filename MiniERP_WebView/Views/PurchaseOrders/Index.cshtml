@@ -4,6 +4,9 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Đơn mua hàng (Nhập kho)</h2>
+    <button class="btn btn-primary" onclick="openCreatePOModal()">
+        <i class="cil-plus"></i> Tạo đơn mua hàng
+    </button>
 </div>
 
 <!-- Filters -->
@@ -31,7 +34,7 @@
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0 text-nowrap">
-                <thead class="bg-body-tertiary">
+                <thead class="table-light">
                     <tr>
                         <th class="ps-4">Mã đơn</th>
                         <th>Ngày lập</th>
@@ -43,6 +46,81 @@
                 </thead>
                 <tbody id="poTable"></tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<!-- CREATE PURCHASE ORDER MODAL -->
+<div class="modal fade" id="CreatePOModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="cil-truck me-2"></i> Lập đơn mua hàng mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-coreui-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createPOForm" class="needs-validation" novalidate>
+                <div class="row g-3">
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Nhà cung cấp <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="poSupplierId" required></select>
+                                    <div class="invalid-feedback">Vui lòng chọn nhà cung cấp.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Ngày dự kiến nhận</label>
+                                    <input type="date" class="form-control" id="poExpectedDate">
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label small fw-bold">Ghi chú</label>
+                                    <textarea class="form-control" id="poNotes" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Danh sách mặt hàng nhập</span>
+                                <button type="button" class="btn btn-sm btn-success text-white" onclick="addItemRow()">
+                                    <i class="cil-plus"></i> Thêm mặt hàng
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 400px;">
+                                    <table class="table table-sm table-hover align-middle mb-0">
+                                        <thead class="bg-white sticky-top">
+                                            <tr>
+                                                <th class="ps-3">Sản phẩm</th>
+                                                <th class="text-center" style="width: 110px;">Số lượng</th>
+                                                <th class="text-end" style="width: 160px;">Giá nhập</th>
+                                                <th class="text-end pe-3" style="width: 150px;">Thành tiền</th>
+                                                <th style="width: 50px;"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="createPOItemsBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="card-footer border-top">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-muted small">Tổng tiền nhập:</span>
+                                    <span class="fw-bold fs-4 text-success" id="poGrandTotal">0 đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success text-white px-4" onclick="submitNewPO()">
+                    <i class="cil-save me-1"></i> LƯU ĐƠN MUA
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -67,29 +145,30 @@
                     </div>
                 </div>
 
-                <h6>Danh sách sản phẩm nhập</h6>
-                <table class="table table-sm table-bordered">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Sản phẩm</th>
-                            <th class="text-end">Giá nhập</th>
-                            <th class="text-center">Số lượng</th>
-                            <th class="text-end">Thành tiền</th>
-                        </tr>
-                    </thead>
-                    <tbody id="modalPOItemsTable"></tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="3" class="text-end">Tổng tiền nhập:</th>
-                            <th class="text-end" id="modalPOTotal"></th>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                <div id="actionArea" class="mt-4 text-center d-none">
-                    <button class="btn btn-success px-4 me-2" onclick="receivePO()">Xác nhận nhập kho</button>
-                    <button class="btn btn-outline-danger px-4" onclick="cancelPO()">Hủy đơn</button>
+                <div id="modalPOItemsTable" class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-end">Giá nhập</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalPOItemsBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Tổng tiền nhập:</th>
+                                <th class="text-end" id="modalPOTotal"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
+            </div>
+            <div class="modal-footer border-top d-none" id="actionArea">
+                <button class="btn btn-success px-4 me-2 text-white" onclick="receivePO()">Xác nhận nhập kho</button>
+                <button class="btn btn-outline-danger px-4" onclick="cancelPO()">Hủy đơn</button>
+            </div>
             </div>
         </div>
     </div>
@@ -97,6 +176,27 @@
 
 <script>
     let currentPOId = null;
+    let productList = [];
+    let createItems = [];
+
+    let categories = [];
+
+    async function init() {
+        await populateSelect('poSupplierId', 'Suppliers', '-- Chọn nhà cung cấp --');
+        const [pData, cData] = await Promise.all([
+            fetch(`${API_BASE}/Products`).then(r => r.json()),
+            fetch(`${API_BASE}/Categories`).then(r => r.json())
+        ]);
+        productList = pData;
+        categories = cData;
+        
+        // Chặn chọn ngày quá khứ cho Ngày dự kiến nhận
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('poExpectedDate');
+        if(dateInput) dateInput.setAttribute('min', today);
+
+        loadPurchaseOrders();
+    }
 
     async function loadPurchaseOrders() {
         const status = document.getElementById('filterStatus').value;
@@ -104,9 +204,7 @@
         if (status) params.append('status', status);
 
         try {
-            let url = `${API_BASE}/purchase-orders`;
-            if (params.toString()) url += `?${params.toString()}`;
-            const response = await fetch(url);
+            const response = await fetch(`${API_BASE}/purchase-orders?${params.toString()}`);
             if (!response.ok) return;
             const data = await response.json();
 
@@ -114,16 +212,16 @@
                 const date = new Date(o.orderDate).toLocaleDateString('vi-VN');
                 const total = o.totalAmount.toLocaleString('vi-VN');
                 let badgeClass = 'bg-secondary';
-                if(o.status === 'PENDING') badgeClass = 'bg-warning';
-                else if(o.status === 'RECEIVED') badgeClass = 'bg-success';
-                else if(o.status === 'CANCELLED') badgeClass = 'bg-danger';
+                if(o.status === 'PENDING') badgeClass = 'bg-warning text-dark';
+                else if(o.status === 'RECEIVED') badgeClass = 'bg-success text-white';
+                else if(o.status === 'CANCELLED') badgeClass = 'bg-danger text-white';
 
                 return `
                     <tr>
-                        <td class="ps-4 fw-bold">PO-${o.id}</td>
+                        <td class="ps-4 fw-bold text-primary">${o.poNumber}</td>
                         <td>${date}</td>
                         <td class="text-success fw-semibold">${o.supplierName || 'NCC ID: ' + o.supplierId}</td>
-                        <td class="fw-bold">${total} đ</td>
+                        <td class="money-text fw-bold">${total} đ</td>
                         <td><span class="badge ${badgeClass}">${o.status}</span></td>
                         <td class="text-end pe-4">
                             <button class="btn btn-sm btn-outline-primary" onclick="viewPODetails(${o.id})">Chi tiết</button>
@@ -134,69 +232,177 @@
         } catch (e) { console.error(e); }
     }
 
+    // --- CREATE LOGIC ---
+    function openCreatePOModal() {
+        createItems = [];
+        document.getElementById('createPOForm').classList.remove('was-validated');
+        document.getElementById('poSupplierId').value = '';
+        document.getElementById('poNotes').value = '';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('poExpectedDate').value = today;
+        addItemRow();
+        new coreui.Modal(document.getElementById('CreatePOModal')).show();
+    }
+
+    function addItemRow() {
+        const id = Date.now();
+        createItems.push({ tempId: id, productId: '', quantity: 10, unitPrice: 0, total: 0 });
+        renderCreateItems();
+    }
+
+    function removeCreateItem(tempId) {
+        createItems = createItems.filter(i => i.tempId !== tempId);
+        renderCreateItems();
+    }
+
+    function updateCreateItem(tempId, field, value) {
+        const item = createItems.find(i => i.tempId === tempId);
+        if (!item) return;
+        if (field === 'productId') {
+            item.productId = value;
+            const p = productList.find(x => x.id == value);
+            item.unitPrice = p ? p.costPrice : 0;
+        } else if (field === 'quantity') {
+            item.quantity = parseInt(value) || 0;
+        } else if (field === 'unitPrice') {
+            item.unitPrice = parseFloat(value) || 0;
+        }
+        item.total = item.quantity * item.unitPrice;
+        renderCreateItems();
+    }
+
+    function renderCreateItems() {
+        const tbody = document.getElementById('createPOItemsBody');
+        
+        // Group products by category for cleaner UI
+        let productOptionsHtml = '<option value="">-- Chọn sản phẩm --</option>';
+        categories.forEach(cat => {
+            const catProducts = productList.filter(p => p.categoryId === cat.id);
+            if (catProducts.length > 0) {
+                productOptionsHtml += `<optgroup label="${cat.name}">`;
+                catProducts.forEach(p => {
+                    productOptionsHtml += `<option value="${p.id}">${p.name} (${p.sku})</option>`;
+                });
+                productOptionsHtml += `</optgroup>`;
+            }
+        });
+        
+        // Products with no category
+        const otherProducts = productList.filter(p => !p.categoryId);
+        if (otherProducts.length > 0) {
+            productOptionsHtml += `<optgroup label="Khác">`;
+            otherProducts.forEach(p => {
+                productOptionsHtml += `<option value="${p.id}">${p.name} (${p.sku})</option>`;
+            });
+            productOptionsHtml += `</optgroup>`;
+        }
+
+        tbody.innerHTML = createItems.map(item => `
+            <tr>
+                <td class="ps-3 position-relative">
+                    <select class="form-select form-select-sm" required onchange="updateCreateItem(${item.tempId}, 'productId', this.value)">
+                        ${productOptionsHtml.replace(`value="${item.productId}"`, `value="${item.productId}" selected`)}
+                    </select>
+                    <div class="invalid-tooltip">Chọn SP.</div>
+                </td>
+                <td class="position-relative">
+                    <input type="number" class="form-control form-control-sm text-center" min="1" required value="${item.quantity}" onchange="updateCreateItem(${item.tempId}, 'quantity', this.value)">
+                    <div class="invalid-tooltip">SL > 0</div>
+                </td>
+                <td class="position-relative">
+                    <input type="number" class="form-control form-control-sm text-end" min="0" required value="${item.unitPrice}" onchange="updateCreateItem(${item.tempId}, 'unitPrice', this.value)">
+                    <div class="invalid-tooltip">Giá >= 0</div>
+                </td>
+                <td class="text-end fw-bold money-text pe-3">${item.total.toLocaleString()} đ</td>
+                <td class="text-center pe-3"><button class="btn btn-link text-danger p-0" onclick="removeCreateItem(${item.tempId})"><i class="cil-trash"></i></button></td>
+            </tr>
+        `).join('');
+        const grandTotal = createItems.reduce((sum, i) => sum + i.total, 0);
+        document.getElementById('poGrandTotal').innerText = grandTotal.toLocaleString() + ' đ';
+    }
+
+    async function submitNewPO() {
+        const form = document.getElementById('createPOForm');
+        if (!form.checkValidity()) {
+            form.classList.add('was-validated');
+            return;
+        }
+
+        const supplierId = document.getElementById('poSupplierId').value;
+        const validItems = createItems.filter(i => i.productId && i.quantity > 0);
+        if(validItems.length === 0) return showAlert("Đơn mua phải có sản phẩm", "danger");
+
+        const data = {
+            supplierId: parseInt(supplierId),
+            expectedDate: document.getElementById('poExpectedDate').value || null,
+            notes: document.getElementById('poNotes').value,
+            items: validItems.map(i => ({ productId: parseInt(i.productId), quantity: i.quantity, unitPrice: i.unitPrice }))
+        };
+
+        try {
+            const res = await fetch(`${API_BASE}/purchase-orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            await handleApiError(res);
+            coreui.Modal.getInstance(document.getElementById('CreatePOModal')).hide();
+            showAlert("Lập đơn mua thành công!");
+            loadPurchaseOrders();
+        } catch (e) { console.error(e); }
+    }
+
+    // --- DETAIL LOGIC ---
     async function viewPODetails(id) {
         currentPOId = id;
         try {
             const response = await fetch(`${API_BASE}/purchase-orders/${id}`);
             const o = await response.json();
-
             document.getElementById('modalPONumber').innerText = o.id;
             document.getElementById('modalSupplier').innerText = o.supplierName || 'NCC ID: ' + o.supplierId;
-            document.getElementById('modalPODate').innerText = new Date(o.orderDate).toLocaleString('vi-VN');
+            document.getElementById('modalPODate').innerText = new Date(o.orderDate).toLocaleDateString('vi-VN');
             document.getElementById('modalPOTotal').innerText = o.totalAmount.toLocaleString('vi-VN') + ' đ';
-
-            let itemsHtml = '';
-            o.items.forEach(item => {
-                itemsHtml += `
-                    <tr>
-                        <td>${item.productName || 'ID: ' + item.productId}</td>
-                        <td class="text-end">${item.unitPrice.toLocaleString()}</td>
-                        <td class="text-center">${item.quantity}</td>
-                        <td class="text-end">${(item.unitPrice * item.quantity).toLocaleString()}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('modalPOItemsTable').innerHTML = itemsHtml;
-
+            document.getElementById('modalPOTotal').classList.add('money-text');
+            document.getElementById('modalPOItemsBody').innerHTML = o.items.map(item => `
+                <tr>
+                    <td>${item.productName || 'ID: ' + item.productId}</td>
+                    <td class="text-end money-text">${item.unitPrice.toLocaleString()}</td>
+                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-end money-text fw-bold">${(item.unitPrice * item.quantity).toLocaleString()}</td>
+                </tr>
+            `).join('');
             const actionArea = document.getElementById('actionArea');
-            if(o.status === 'PENDING') {
-                actionArea.classList.remove('d-none');
-            } else {
-                actionArea.classList.add('d-none');
-            }
-
+            if(o.status === 'PENDING') actionArea.classList.remove('d-none');
+            else actionArea.classList.add('d-none');
             new coreui.Modal(document.getElementById('PODetailModal')).show();
         } catch (e) { console.error(e); }
     }
 
-    async function receivePO() {
-        if(!confirm("Xác nhận nhập kho các sản phẩm này?")) return;
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user.id || 1;
-
-        try {
-            const response = await fetch(`${API_BASE}/purchase-orders/${currentPOId}/receive?receivedBy=${userId}`, {
-                method: 'PATCH'
-            });
-            await handleApiError(response);
-            coreui.Modal.getInstance(document.getElementById('PODetailModal')).hide();
-            showAlert("Đã nhập kho thành công!");
-            loadPurchaseOrders();
-        } catch (e) { console.error(e); }
+    function receivePO() {
+        showConfirm("Xác nhận nhập kho", "Bạn có chắc chắn muốn nhập kho đơn hàng này? Số lượng sản phẩm sẽ được cộng vào tồn kho hệ thống.", async () => {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const userId = user.id || 1;
+            try {
+                const response = await fetch(`${API_BASE}/purchase-orders/${currentPOId}/receive?receivedBy=${userId}`, { method: 'PATCH' });
+                await handleApiError(response);
+                coreui.Modal.getInstance(document.getElementById('PODetailModal')).hide();
+                showAlert("Đã nhập kho thành công!");
+                loadPurchaseOrders();
+            } catch (e) { console.error(e); }
+        });
     }
 
-    async function cancelPO() {
-        if(!confirm("Xác nhận hủy đơn mua hàng này?")) return;
-        try {
-            const response = await fetch(`${API_BASE}/purchase-orders/${currentPOId}/cancel`, {
-                method: 'PATCH'
-            });
-            await handleApiError(response);
-            coreui.Modal.getInstance(document.getElementById('PODetailModal')).hide();
-            showAlert("Đã hủy đơn mua hàng.");
-            loadPurchaseOrders();
-        } catch (e) { console.error(e); }
+    function cancelPO() {
+        showConfirm("Xác nhận hủy đơn", "Bạn có chắc chắn muốn hủy đơn mua hàng này? Hành động này không thể hoàn tác.", async () => {
+            try {
+                const response = await fetch(`${API_BASE}/purchase-orders/${currentPOId}/cancel`, { method: 'PATCH' });
+                await handleApiError(response);
+                coreui.Modal.getInstance(document.getElementById('PODetailModal')).hide();
+                showAlert("Đã hủy đơn mua.");
+                loadPurchaseOrders();
+            } catch (error) { console.error(error); }
+        });
     }
 
-    document.addEventListener('DOMContentLoaded', loadPurchaseOrders);
+    document.addEventListener('DOMContentLoaded', init);
 </script>

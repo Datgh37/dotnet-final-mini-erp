@@ -12,10 +12,13 @@
     <title>Login - MiniERP</title>
     <!-- Main styles for this application-->
     <link href="~/css/style.css" rel="stylesheet">
+    <link href="~/css/custom.css" rel="stylesheet">
     <link href="~/vendors/@@coreui/coreui/css/coreui.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/@@coreui/icons/css/all.min.css">
+    <script src="~/js/config.js"></script>
+    <script src="~/js/color-modes.js"></script>
     <style>
         .login-page {
-            background-color: #ebedef;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -27,6 +30,31 @@
     </style>
 </head>
 <body class="login-page">
+    <!-- Theme Switcher -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        <div class="dropdown">
+            <button class="btn btn-link text-body p-0 d-flex align-items-center justify-content-center" type="button" data-coreui-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px; text-decoration: none;">
+                <i class="cil-sun fs-4 theme-icon-active"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                <li>
+                    <button class="dropdown-item d-flex align-items-center" type="button" data-coreui-theme-value="light">
+                        <i class="cil-sun me-2"></i> Sáng
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item d-flex align-items-center" type="button" data-coreui-theme-value="dark">
+                        <i class="cil-moon me-2"></i> Tối
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item d-flex align-items-center" type="button" data-coreui-theme-value="auto">
+                        <i class="cil-contrast me-2"></i> Tự động
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -35,7 +63,7 @@
                         <div class="card-body">
                             <h1>Login</h1>
                             <p class="text-body-secondary">Sign In to your account</p>
-                            <form id="loginForm">
+                            <form id="loginForm" class="needs-validation" novalidate>
                                 <div id="loginError" class="alert alert-danger d-none mb-3" role="alert"></div>
                                 <div class="input-group mb-3">
                                     <span class="input-group-text">
@@ -44,26 +72,28 @@
                                         </svg>
                                     </span>
                                     <input class="form-control" type="text" id="username" placeholder="Username" required>
+                                    <div class="invalid-feedback">Vui lòng nhập tên đăng nhập.</div>
                                 </div>
-                                <div class="input-group mb-4">
-                                    <span class="input-group-text">
+                                <div class="input-group mb-4 shadow-sm has-validation">
+                                    <span class="input-group-text border-end-0 bg-transparent">
                                         <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
                                             <path fill="currentColor" d="M384 200v-56a128 128 0 0 0-256 0v56H88v128c0 92.635 75.364 168 168 168s168-75.365 168-168V200Zm-224-56a96 96 0 0 1 192 0v56H160Zm232 184c0 74.99-61.01 136-136 136s-136-61.01-136-136v-96h272Z" />
                                         </svg>
                                     </span>
-                                    <input class="form-control" type="password" id="password" placeholder="Password" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
-                                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+                                    <input class="form-control border-start-0 border-end-0 shadow-none" type="password" id="password" placeholder="Password" required>
+                                    <button class="btn border border-start-0 bg-transparent text-body-secondary d-flex align-items-center justify-content-center" type="button" id="togglePassword" style="width: 45px;">
+                                        <svg id="eyeIcon" class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512">
                                             <path fill="currentColor" d="M256 128c-81.191 0-149.625 58.718-160 128 10.375 69.282 78.809 128 160 128s149.625-58.718 160-128c-10.375-69.282-78.809-128-160-128m0 224c-53.02 0-96-42.98-96-96s42.98-96 96-96 96 42.98 96 96-42.98 96-96 96m0-160c-35.346 0-64 28.654-64 64s28.654 64 64 64 64-28.654 64-64-28.654-64-64-64" />
                                         </svg>
                                     </button>
+                                    <div class="invalid-feedback">Vui lòng nhập mật khẩu.</div>
                                 </div>
                                 <div class="row">
                                     <div class="col-6">
                                         <button class="btn btn-primary px-4" type="submit">Login</button>
                                     </div>
                                     <div class="col-6 text-end">
-                                        <button class="btn btn-link px-0" type="button">Forgot password?</button>
+                                        <button class="btn btn-link px-0" type="button" onclick="showForgotPwdAlert()">Forgot password?</button>
                                     </div>
                                 </div>
                             </form>
@@ -84,7 +114,9 @@
     </div>
     <!-- CoreUI and necessary plugins-->
     <script src="~/vendors/@@coreui/coreui/js/coreui.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
     <script>
+        window.isLoginPage = true;
         const API_BASE = "@Configuration["ApiSettings:BaseUrl"]";
 
         document.getElementById("loginForm").addEventListener("submit", async function(e) {
@@ -143,14 +175,40 @@
             toggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const pwdInput = document.getElementById('password');
-                const type = pwdInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                pwdInput.setAttribute('type', type);
+                const eyeIcon = document.getElementById('eyeIcon');
+                const isPassword = pwdInput.getAttribute('type') === 'password';
                 
-                // Optional: Toggle icon visual feedback
-                this.classList.toggle('btn-primary');
-                this.classList.toggle('btn-outline-secondary');
+                pwdInput.setAttribute('type', isPassword ? 'text' : 'password');
+                
+                // Switch SVG Path
+                if (isPassword) {
+                    // Eye-Slash Path
+                    eyeIcon.innerHTML = `<path d="M432 256c10.375 69.282-78.809 128-160 128s-149.625-58.718-160-128c10.375-69.282 78.809-128 160-128s149.625 58.718 160 128m-160-96c-53.02 0-96 42.98-96 96s42.98 96 96 96 96-42.98 96-96-42.98-96-96-96m0 160c-35.346 0-64 28.654-64 64s28.654 64 64 64 64 28.654 64 64-28.654 64-64 64"/><path d="m463.515 429.515-392-392-22.63 22.63 392 392z"/>`;
+                } else {
+                    // Regular Eye Path
+                    eyeIcon.innerHTML = `<path d="M256 128c-81.191 0-149.625 58.718-160 128 10.375 69.282 78.809 128 160 128s149.625-58.718 160-128c-10.375-69.282-78.809-128-160-128m0 224c-53.02 0-96-42.98-96-96s42.98-96 96-96 96 42.98 96 96-42.98 96-96 96m0-160c-35.346 0-64 28.654-64 64s28.654 64 64 64 64 28.654 64 64-28.654 64-64 64"/>`;
+                }
             });
         }
+
+        function showForgotPwdAlert() {
+            showAlert("Vui lòng thông báo với quản trị viên (Admin) để thực hiện cấp lại mật khẩu cho tài khoản của bạn.", "info");
+        }
+
+        // Update Theme Icon on Login Page
+        document.documentElement.addEventListener('ColorSchemeChange', () => {
+            const theme = document.documentElement.getAttribute('data-coreui-theme');
+            const icon = document.querySelector('.theme-icon-active');
+            if (icon) {
+                if (theme === 'dark') {
+                    icon.classList.remove('cil-sun', 'cil-contrast');
+                    icon.classList.add('cil-moon');
+                } else {
+                    icon.classList.remove('cil-moon', 'cil-contrast');
+                    icon.classList.add('cil-sun');
+                }
+            }
+        });
     </script>
 </body>
 </html>

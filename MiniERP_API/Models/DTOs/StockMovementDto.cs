@@ -21,6 +21,12 @@ namespace MiniERP_API.Models.DTOs
         
         /// <example>2026-05-14T10:00:00Z</example>
         public DateTimeOffset CreatedAt { get; set; }
+
+        /// <example>iPhone 15 Pro Max</example>
+        public string ProductName { get; set; }
+
+        /// <example>IP15PM</example>
+        public string SKU { get; set; }
     }
 
     public class StockAdjustDto
