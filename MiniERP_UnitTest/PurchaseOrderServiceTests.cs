@@ -3,14 +3,22 @@ namespace MiniERP_UnitTest
     public class PurchaseOrderServiceTests
     {
         private readonly Mock<IPurchaseOrderRepository> _mockRepo;
+        private readonly Mock<ISupplierRepository> _mockSupplierRepo;
+        private readonly Mock<IProductRepository> _mockProductRepo;
         private readonly Mock<IMapper> _mockMapper;
         private readonly PurchaseOrderService _poService;
 
         public PurchaseOrderServiceTests()
         {
             _mockRepo = new Mock<IPurchaseOrderRepository>();
+            _mockSupplierRepo = new Mock<ISupplierRepository>();
+            _mockProductRepo = new Mock<IProductRepository>();
             _mockMapper = new Mock<IMapper>();
-            _poService = new PurchaseOrderService(_mockRepo.Object, _mockMapper.Object);
+            _poService = new PurchaseOrderService(
+                _mockRepo.Object, 
+                _mockSupplierRepo.Object, 
+                _mockProductRepo.Object, 
+                _mockMapper.Object);
         }
 
         [Fact]

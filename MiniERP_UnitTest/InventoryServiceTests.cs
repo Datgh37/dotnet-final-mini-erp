@@ -3,14 +3,16 @@ namespace MiniERP_UnitTest
     public class InventoryServiceTests
     {
         private readonly Mock<IInventoryRepository> _mockRepo;
+        private readonly Mock<IProductRepository> _mockProductRepo;
         private readonly Mock<IMapper> _mockMapper;
         private readonly InventoryService _inventoryService;
 
         public InventoryServiceTests()
         {
             _mockRepo = new Mock<IInventoryRepository>();
+            _mockProductRepo = new Mock<IProductRepository>();
             _mockMapper = new Mock<IMapper>();
-            _inventoryService = new InventoryService(_mockRepo.Object, _mockMapper.Object);
+            _inventoryService = new InventoryService(_mockRepo.Object, _mockProductRepo.Object, _mockMapper.Object);
         }
 
         [Fact]

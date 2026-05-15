@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -29,6 +29,7 @@
     <Using Include="FluentAssertions" />
     <Using Include="MiniERP_API.Services" />
     <Using Include="MiniERP_API.Repositories.Interfaces" />
+	<Using Include="MiniERP_API.Services.Interfaces" />
     <Using Include="MiniERP_API.Models.Entities" />
     <Using Include="MiniERP_API.Models.DTOs" />
     <Using Include="AutoMapper" />
